@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Theory Gym (mobile)</title>
+<style>
+:root{--bg:#faf8f4;--card:#fff;--ink:#1d1b18;--mut:#6b665e;--line:#e4dfd5;--acc:#c2410c;--ok:#166534;--okb:#dcfce7;--no:#991b1b;--nob:#fee2e2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171513;--card:#211f1c;--ink:#f1ede6;--mut:#a39d92;--line:#37332d;--acc:#fb923c;--ok:#86efac;--okb:#14301e;--no:#fca5a5;--nob:#3a1717}}
+:root[data-theme="dark"]{--bg:#171513;--card:#211f1c;--ink:#f1ede6;--mut:#a39d92;--line:#37332d;--acc:#fb923c;--ok:#86efac;--okb:#14301e;--no:#fca5a5;--nob:#3a1717}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,"Times New Roman",serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:26px;margin:0 0 2px}
+.sub{color:var(--mut);margin:0 0 18px;font-family:system-ui,sans-serif;font-size:14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;font-family:system-ui,sans-serif}
+.tabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 12px;border-radius:999px;font-size:14px;cursor:pointer}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px}
+.lesson h2{font-size:17px;margin:0 0 6px}
+.lesson p{margin:6px 0;font-size:15px}
+.lesson summary{cursor:pointer;font-family:system-ui,sans-serif;font-weight:600;font-size:14px;color:var(--acc)}
+.q{font-size:19px;margin:0 0 12px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:system-ui,sans-serif}
+.opts button{padding:12px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:15px;cursor:pointer}
+.opts button:hover:not(:disabled){border-color:var(--acc)}
+.opts button.ok{background:var(--okb);border-color:var(--ok);color:var(--ok)}
+.opts button.no{background:var(--nob);border-color:var(--no);color:var(--no)}
+.fb{margin-top:12px;padding:12px;border-radius:10px;font-size:15px}
+.fb.ok{background:var(--okb)}.fb.no{background:var(--nob)}
+.fb b{font-family:system-ui,sans-serif}
+.row{display:flex;gap:8px;margin-top:12px;font-family:system-ui,sans-serif;align-items:center;flex-wrap:wrap}
+.btn{border:0;background:var(--acc);color:#fff;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer}
+.btn.alt{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.stat{color:var(--mut);font-size:13px;margin-left:auto}
+.big{font-size:30px;letter-spacing:.04em}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sg .big{font-size:26px}
+/*SIDE*/
+:root{padding-top:0}
+body{font-size:17px}
+#bar{position:fixed;top:0;left:0;right:0;z-index:7;display:flex;align-items:center;gap:12px;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;background:var(--card);border-bottom:1px solid var(--line)}
+#tg{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font-size:20px}
+#ttl{font:600 18px system-ui,sans-serif}
+#side{position:fixed;top:0;left:0;bottom:0;width:80%;max-width:300px;padding:calc(76px + env(safe-area-inset-top,0px)) 14px 14px;background:var(--card);border-right:1px solid var(--line);transform:translateX(-100%);transition:transform .2s;z-index:9;overflow-y:auto;font-family:system-ui,sans-serif}
+body.open #side{transform:none;box-shadow:0 0 40px rgba(0,0,0,.35)}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:8}
+body.open #scrim{opacity:1;pointer-events:auto}
+#side .nh{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:0 0 10px 4px}
+#side .tabs{display:flex;flex-direction:column;gap:8px;overflow:visible}
+#side .tabs button{width:100%;text-align:left;border-radius:12px;padding:14px;font-size:16px}
+main{padding:calc(72px + env(safe-area-inset-top,0px)) 12px calc(32px + env(safe-area-inset-bottom,0px))}
+h1,.sub{display:none}
+.card{border-radius:16px;padding:14px}
+.q{font-size:20px}
+.big{font-size:26px}
+.sg .big{font-size:22px}
+.opts{grid-template-columns:1fr;gap:10px}
+.opts button{min-height:56px;font-size:17px;border-radius:14px}
+.btn{min-height:48px;padding:12px 18px;font-size:16px}
+.fb+.row{flex-wrap:nowrap}
+.fb+.row .btn{flex:1}
+/*END*/
+</style></head><body><header id="bar"><button id="tg" onclick="tog()" aria-label="Sections">☰</button><span id="ttl">Theory Gym</span></header><div id="scrim" onclick="tog()"></div><nav id="side"><div class="nh">Sections</div><div class="tabs" id="tabs"></div></nav><main>
+<h1>Theory Gym</h1>
+<p class="sub">Practice questions, with the reason behind every answer.</p>
+<div class="card lesson" id="lesson"></div>
+<div class="card" id="quiz"></div>
+<div class="card" id="stats"></div>
+</main>
+<script>
+const N=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const BASE={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+const pc=n=>((BASE[n[0]]+(n[1]=='#'?1:n[1]=='b'?-1:0))%12+12)%12;
+const IV=['Perfect unison','Minor 2nd','Major 2nd','Minor 3rd','Major 3rd','Perfect 4th','Tritone','Perfect 5th','Minor 6th','Major 6th','Minor 7th','Major 7th','Perfect octave'];
+const SONG={1:'Jaws theme',2:'Happy Birthday (first two notes)',3:'Greensleeves',4:'When the Saints Go Marching In',5:'Here Comes the Bride',6:'The Simpsons theme',7:'Star Wars main theme',8:'The Entertainer (opening leap)',9:'My Bonnie Lies Over the Ocean',10:'Somewhere (West Side Story)',11:'Take On Me (chorus leap)',12:'Somewhere Over the Rainbow'};
+const SC={C:'C D E F G A B',G:'G A B C D E F#',D:'D E F# G A B C#',A:'A B C# D E F# G#',E:'E F# G# A B C# D#',F:'F G A Bb C D E',Bb:'Bb C D Eb F G A',Eb:'Eb F G Ab Bb C D'};
+const ROM=['I','ii','iii','IV','V','vi','vii°'];
+const TRI={major:[0,4,7],minor:[0,3,7],diminished:[0,3,6],augmented:[0,4,8]};
+const DEG={major:'1 – 3 – 5',minor:'1 – ♭3 – 5',diminished:'1 – ♭3 – ♭5',augmented:'1 – 3 – ♯5'};
+const EXP={major:'a major third (3) and a perfect fifth (5) above the root',minor:'a lowered third (♭3) and a perfect fifth (5)',diminished:'a lowered third (♭3) and a lowered fifth (♭5): two minor thirds stacked',augmented:'a major third (3) and a raised fifth (♯5): two major thirds stacked'};
+const MIN={A:'A B C D E F G',E:'E F# G A B C D',B:'B C# D E F# G A','F#':'F# G# A B C# D E','C#':'C# D# E F# G# A B',D:'D E F G A Bb C',G:'G A Bb C D Eb F',C:'C D Eb F G Ab Bb'};
+const R=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+const ord=n=>n+(['th','st','nd','rd'][n%10>3||(n>10&&n<14)?0:n%10]);
+
+let ac;
+function tone(m,t,d){ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=440*Math.pow(2,(m-69)/12);const s=ac.currentTime+t;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.3,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(ac.destination);o.start(s);o.stop(s+d+.05)}
+const play=(a,b,together)=>{if(ac&&ac.state=='suspended')ac.resume();tone(a,0,1.2);tone(b,together?0:.8,1.2)};
+
+const MODS={
+intervals:{name:'Intervals',lesson:`<h2>Intervals: the distance between two notes</h2><p>An interval is counted in <b>semitones</b> (the smallest step on a piano, one key to the next). Every interval has a name because each one has its own character. Knowing them lets you read melodies, build chords and spot patterns instead of memorising notes.</p><details><summary>Cheat sheet</summary><p>1 minor 2nd · 2 major 2nd · 3 minor 3rd · 4 major 3rd · 5 perfect 4th · 6 tritone · 7 perfect 5th · 8 minor 6th · 9 major 6th · 10 minor 7th · 11 major 7th · 12 octave</p></details>`,
+gen(){const r=Math.floor(Math.random()*12),s=1+Math.floor(Math.random()*12),u=N[(r+s)%12],a=N[r],ans=IV[s];
+return{q:`What interval is <span class="big">${a} → ${u}</span> (going up)?`,opts:shuf([ans,...shuf(IV.slice(1).filter(x=>x!=ans)).slice(0,3)]),ans,
+why:`Count the semitones from ${a} up to ${u}: ${s}. ${s} semitones is a <b>${ans}</b>. The “quality” (major/minor/perfect) is just a label for how many semitones the distance spans, so memorise the semitone count and the name follows.`}}},
+ear:{name:'Ear training',lesson:`<h2>Hearing intervals</h2><p>Theory is only useful if you can hear it. Each interval has a distinct sound. The trick is to tie each one to a song you already know, so you recognise the <i>shape</i> of the leap rather than the exact pitches.</p><p>You’re told the first note. Press play (headphones help), then pick the interval. After answering, every option button shows the notes it would have meant (first note → second note), and you can tap any of them to hear it.</p>`,
+gen(){const a=48+Math.floor(Math.random()*14),s=1+Math.floor(Math.random()*12),ans=IV[s],o=shuf([ans,...shuf(IV.slice(1).filter(x=>x!=ans)).slice(0,3)]),r=N[a%12];
+return{q:`The first note is <span class="big">${r}</span>. Listen to the second note: what interval is it?`,audio:[a,a+s],opts:o,ans,extra:undefined,labels:Object.fromEntries(o.map(x=>[x,r+' → '+N[(a+IV.indexOf(x))%12]])),pl:Object.fromEntries(o.map(x=>[x,[a,a+IV.indexOf(x)]])),
+why:`It was <b>${ans}</b> (${s} semitone${s>1?'s':''}). Memory hook: <i>${SONG[s]}</i>. Songs work because they lock the interval to a melody you already carry in your head. Try singing the hook, then the interval you just heard.`}}},
+scales:{name:'Major scales',lesson:`<h2>The major scale</h2><p>Every major scale uses the same pattern of steps: <b>Whole, Whole, Half, Whole, Whole, Whole, Half</b> (a whole step = 2 semitones, a half step = 1). Start on any note, apply the pattern, and you get that key. The sharps and flats in a key aren’t random: they are what the pattern forces.</p><details><summary>Why this matters</summary><p>Because the pattern is fixed, the scale sounds “the same” in every key. Learn the pattern once and you can derive any key signature.</p></details>`,
+gen(){const k=R(Object.keys(SC)),sc=SC[k].split(' '),d=2+Math.floor(Math.random()*6),ans=sc[d-1];
+const pool=[...new Set(Object.values(SC).join(' ').split(' '))].filter(x=>x!=ans);
+const nat=pool.filter(x=>x[0]==ans[0]);const ds=shuf([...nat,...shuf(pool.filter(x=>!nat.includes(x)))]).slice(0,3);
+return{q:`What is the ${ord(d)} note of the <span class="big">${k} major</span> scale?`,opts:shuf([ans,...ds]),ans,
+why:`${k} major = ${sc.join(' ')}. Apply W-W-H-W-W-W-H starting on ${k}. Each letter name is used once, which is why it’s spelled ${ans} and not an enharmonic twin: the ${ord(d)} degree must be a “${ans[0]}” note.`}}},
+minor:{name:'Minor scales',lesson:`<h2>The natural minor scale</h2><p>The natural minor pattern is <b>Whole, Half, Whole, Whole, Half, Whole, Whole</b>. Compared with a major scale on the same root, the 3rd, 6th and 7th notes are each a semitone lower (♭3, ♭6, ♭7). That lowered third is what gives minor its darker colour.</p><details><summary>Harmonic and melodic minor</summary><p>Composers often raise the 7th note (harmonic minor) to create a stronger pull back to the tonic. This trainer uses natural minor.</p></details>`,
+gen(){const k=R(Object.keys(MIN)),sc=MIN[k].split(' '),d=2+Math.floor(Math.random()*6),ans=sc[d-1];
+const pool=[...new Set(Object.values(MIN).join(' ').split(' '))].filter(x=>x!=ans);
+const nat=pool.filter(x=>x[0]==ans[0]);const ds=shuf([...nat,...shuf(pool.filter(x=>!nat.includes(x)))]).slice(0,3);
+const low=d==3||d==6||d==7?` The ${ord(d)} degree is lowered (♭${d}) compared with the major scale, which is a typical minor sound.`:'';
+return{q:`What is the ${ord(d)} note of the <span class="big">${k} minor</span> scale?`,opts:shuf([ans,...ds]),ans,
+why:`${k} minor = ${sc.join(' ')}. Apply W-H-W-W-H-W-W starting on ${k}; each letter is used once, so the ${ord(d)} note is spelled with “${ans[0]}”.`+low}}},
+relative:{name:'Relative keys',lesson:`<h2>Relative major and minor</h2><p>Every major key shares all of its notes with one minor key, its <b>relative minor</b>. The relative minor starts on the <b>6th note</b> of the major scale (3 semitones below the major tonic). Going the other way, the relative major of a minor key starts on the minor scale’s <b>3rd note</b> (3 semitones above).</p><p>Example: C major and A minor use exactly the same notes, with no sharps or flats. They sound different only because the “home” note changes.</p>`,
+gen(){if(Math.random()<.5){const k=R(Object.keys(SC)),sc=SC[k].split(' '),ans=sc[5]+' minor';
+const ds=[...new Set([k+' minor',...shuf(Object.keys(MIN).map(x=>x+' minor'))])].filter(x=>x!=ans).slice(0,3);
+return{q:`What is the relative minor of <span class="big">${k} major</span>?`,opts:shuf([ans,...ds]),ans,why:`${k} major = ${sc.join(' ')}. Its 6th note is ${sc[5]}, so the relative minor is <b>${ans}</b>, and it uses the same notes: ${sc.slice(5).concat(sc.slice(0,5)).join(' ')}. Careful: ${k} minor (same root) is the <i>parallel</i> minor, a different key with different notes.`}}
+const k=R(Object.keys(MIN)),sc=MIN[k].split(' '),ans=sc[2]+' major';
+const ds=[...new Set([k+' major',...shuf(Object.keys(SC).map(x=>x+' major'))])].filter(x=>x!=ans).slice(0,3);
+return{q:`What is the relative major of <span class="big">${k} minor</span>?`,opts:shuf([ans,...ds]),ans,why:`${k} minor = ${sc.join(' ')}. Its 3rd note is ${sc[2]} (3 semitones above ${k}), so the relative major is <b>${ans}</b>, with the same notes: ${sc.slice(2).concat(sc.slice(0,2)).join(' ')}. ${k} major (same root) would be the <i>parallel</i> major, a different key.`}}},
+triads:{name:'Triads',lesson:`<h2>Building triads</h2><p>A triad is three notes stacked in thirds: root, third, fifth. The size of those thirds sets the quality:</p><p><b>Major</b> 0-4-7 · <b>Minor</b> 0-3-7 · <b>Diminished</b> 0-3-6 · <b>Augmented</b> 0-4-8 <span style="color:var(--mut)">(semitones above the root)</span></p><p>The same chords as <b>scale degrees</b> (counted against a major scale from the root): <b>Major</b> 1 – 3 – 5 · <b>Minor</b> 1 – ♭3 – 5 · <b>Diminished</b> 1 – ♭3 – ♭5 · <b>Augmented</b> 1 – 3 – ♯5. Here 1 is the root, 3 the third, 5 the fifth; ♭ lowers a note by a semitone and ♯ raises it.</p><p>Only the third and fifth change, and that small shift is the entire difference between bright, sad, tense and unresolved.</p>`,
+gen(){const r=Math.floor(Math.random()*12),q=R(Object.keys(TRI)),f=x=>TRI[x].map(i=>N[(r+i)%12]).join(' – '),ans=f(q),rows=Object.keys(TRI).map(x=>'<div style="margin:4px 0"><b>'+N[r]+' '+x+'</b>: '+f(x)+' &nbsp;<span style="color:var(--mut)">('+DEG[x]+')</span></div>').join('');
+if(Math.random()<.5)return{q:`Which chord has the degrees <span class="big">${DEG[q]}</span> (root, third, fifth)?`,opts:shuf(Object.keys(TRI)),ans:q,extra:'<p>All four built on '+N[r]+', with their degrees:</p>'+rows,why:`<b>${q}</b> = ${DEG[q]}: the root, ${EXP[q]}. On ${N[r]} that gives ${ans}.`};
+return{q:`Which notes make the <span class="big">${N[r]} ${q}</span> triad?`,opts:shuf(Object.keys(TRI).map(f)),ans,extra:'<p>All four built on '+N[r]+', with their degrees:</p>'+rows,
+why:`${N[r]} ${q} has the degrees ${DEG[q]}: root ${N[r]}, ${EXP[q]}. That means the third is ${N[(r+TRI[q][1])%12]} (${TRI[q][1]} semitones up) and the fifth is ${N[(r+TRI[q][2])%12]} (${TRI[q][2]} semitones up).`}}},
+harmony:{name:'Chords in a key',lesson:`<h2>Which chord lives where?</h2><p>Stack thirds using only the notes of the scale, and you get one triad on every degree. In any major key the qualities are always the same: <b>I major · ii minor · iii minor · IV major · V major · vi minor · vii° diminished</b>.</p><p>This is how songwriters know which chords “belong” together, and why I–IV–V–vi works in every key.</p>`,
+gen(){const k=R(Object.keys(SC)),sc=SC[k].split(' '),d=Math.floor(Math.random()*7),t=[sc[d],sc[(d+2)%7],sc[(d+4)%7]],a=(pc(t[1])-pc(t[0])+12)%12,b=(pc(t[2])-pc(t[1])+12)%12,ql=a==4&&b==3?'major':a==3&&b==4?'minor':'diminished';
+const lab=x=>t[0]+' '+x,ans=lab(ql);
+return{q:`In <span class="big">${k} major</span>, what is the chord built on the ${ord(d+1)} note (${ROM[d]})?`,opts:shuf(['major','minor','diminished','augmented'].map(lab)),ans,
+why:`Take every other scale note from ${t[0]}: ${t.join(' – ')}. The thirds are ${a} then ${b} semitones, giving <b>${ans}</b> (${ROM[d]}). The scale’s own notes decide the quality, which is why the pattern is identical in every major key.`}}}
+};
+
+let cur='intervals',st={},q=null,done=false;
+const $=id=>document.getElementById(id);
+function tabs(){$('tabs').innerHTML=Object.entries(MODS).map(([k,m])=>`<button class="${k==cur?'on':''}" onclick="go('${k}')">${m.name}</button>`).join('')}
+function go(k){cur=k;tabs();document.body.classList.remove('open');$('ttl').textContent=MODS[k].name;$('lesson').innerHTML=MODS[k].lesson;next()}
+function tog(){document.body.classList.toggle('open')}
+function next(){q=MODS[cur].gen();done=false;draw()}
+function draw(fb){const s=st[cur]||{c:0,t:0};
+$('quiz').innerHTML=`<p class="q">${q.q}</p>${q.audio?`<div class="row" style="margin:0 0 12px"><button class="btn" onclick="play(${q.audio[0]},${q.audio[1]},false)">▶ Play</button><button class="btn alt" onclick="play(${q.audio[0]},${q.audio[1]},true)">Play together</button></div>`:''}
+<div class="opts">${q.opts.map((o,i)=>`<button ${done&&!q.labels?'disabled':''} class="${done?(o==q.ans?'ok':(o==done?'no':'')):''}" onclick="${done?'hear('+i+')':'pick('+i+')'}">${o}${done&&q.labels?'<br><small>'+q.labels[o]+' · tap to hear</small>':''}</button>`).join('')}</div>
+${done?`<div class="fb ${done==q.ans?'ok':'no'}"><b>${done==q.ans?'Correct.':'Not quite.'}</b> ${q.why}${q.extra?'<div style="margin-top:8px">'+q.extra+'</div>':''}</div><div class="row"><button class="btn" onclick="next()">Next question</button><span class="stat">${s.c}/${s.t} correct</span></div>`:`<div class="row"><span class="stat">${s.c}/${s.t} correct</span></div>`}`}
+function pick(i){if(done)return;done=q.opts[i];const s=st[cur]=st[cur]||{c:0,t:0};s.t++;if(done==q.ans)s.c++;record(done==q.ans);draw()}
+function hear(i){const p=q.pl&&q.pl[q.opts[i]];if(p)play(p[0],p[1],false)}
+const KEY='theorygym.v1',ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+let store={days:{},cust:{c:0,t:0,since:ds(new Date())}},ses={c:0,t:0},canSave=true;
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.days&&s.cust)store=s}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));canSave=true}catch(e){canSave=false}}
+function record(ok){const d=ds(new Date()),b=store.days[d]=store.days[d]||{c:0,t:0};b.t++;store.cust.t++;ses.t++;if(ok){b.c++;store.cust.c++;ses.c++}
+const cut=ds(new Date(Date.now()-60*864e5));Object.keys(store.days).forEach(k=>{if(k<cut)delete store.days[k]});save();renderStats()}
+function month(){const cut=ds(new Date(Date.now()-29*864e5));let c=0,t=0;Object.entries(store.days).forEach(([k,v])=>{if(k>=cut){c+=v.c;t+=v.t}});return{c,t}}
+const pct=(c,t)=>t?Math.round(100*c/t)+'%':'–';
+const box=(l,c,t)=>'<div style="text-align:center"><div style="font:12px system-ui;color:var(--mut)">'+l+'</div><div class="big">'+pct(c,t)+'</div><div style="font:12px system-ui;color:var(--mut)">'+c+' / '+t+'</div></div>';
+function renderStats(){const m=month();$('stats').innerHTML='<div class="sg">'+box('This session',ses.c,ses.t)+box('Last 30 days',m.c,m.t)+box('Since reset',store.cust.c,store.cust.t)+'</div><div class="row"><span class="stat" style="margin-left:0">Reset counter started '+store.cust.since+'</span><button class="btn alt" style="margin-left:auto" onclick="resetCustom()">Reset</button></div>'+(canSave?'':'<p style="font:12px system-ui;color:var(--mut);margin:8px 0 0">This browser blocks saving, so the 30-day and reset counters only last while this page is open.</p>')}
+function resetCustom(){store.cust={c:0,t:0,since:ds(new Date())};save();renderStats()}
+load();renderStats();go('intervals');
+</script></body></html>
