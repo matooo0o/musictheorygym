@@ -378,9 +378,11 @@ const SETSTR={"en":{"set.sub":"Language, colour theme, accent colour, notation a
 Object.keys(SETSTR).forEach(function(l){if(!STR[l])return;const d=SETSTR[l];for(const k in d)STR[l][k]=d[k]});
 const PRSTR={"en":{"gotit":"Got it","missedit":"Not quite yet"},"es":{"gotit":"Lo tengo","missedit":"Todavía no"},"it":{"gotit":"Fatto","missedit":"Non ancora"},"pt":{"gotit":"Consegui","missedit":"Ainda não"},"fr":{"gotit":"Réussi","missedit":"Pas encore"},"de":{"gotit":"Geschafft","missedit":"Noch nicht"}};
 Object.keys(PRSTR).forEach(function(l){if(!STR[l])return;const d=PRSTR[l];for(const k in d)STR[l][k]=d[k]});
+const PIASTR={"en":{"cat.fretboard.keys":"Keys notes","cat.fretboard.keys.s":"Find any note or root on the keyboard, then play it.","set.notation.keys":"Keyboard"},"es":{"cat.fretboard.keys":"Notas del teclado","cat.fretboard.keys.s":"Encuentra cualquier nota o fundamental en el teclado y tócala.","set.notation.keys":"Teclado"},"it":{"cat.fretboard.keys":"Note della tastiera","cat.fretboard.keys.s":"Trova una nota o la fondamentale sulla tastiera e suonala.","set.notation.keys":"Tastiera"},"pt":{"cat.fretboard.keys":"Notas do teclado","cat.fretboard.keys.s":"Encontre qualquer nota ou fundamental no teclado e toque.","set.notation.keys":"Teclado"},"fr":{"cat.fretboard.keys":"Notes du clavier","cat.fretboard.keys.s":"Trouve une note ou la fondamentale sur le clavier, puis joue-la.","set.notation.keys":"Clavier"},"de":{"cat.fretboard.keys":"Tastatur-Noten","cat.fretboard.keys.s":"Finde einen Ton oder Grundton auf der Tastatur und spiele ihn.","set.notation.keys":"Tastatur"}};
+Object.keys(PIASTR).forEach(function(l){if(!STR[l])return;const d=PIASTR[l];for(const k in d)STR[l][k]=d[k]});
 const LANGS=[["en","English"],["es","Español"],["it","Italiano"],["pt","Português"],["fr","Français"],["de","Deutsch"]].filter(function(l){return !!STR[l[0]]});
 const ACC={orange:["#c2410c","#fb923c"],blue:["#1d4ed8","#60a5fa"],green:["#15803d","#4ade80"],purple:["#7e22ce","#c084fc"],rose:["#be123c","#fb7185"],teal:["#0f766e","#2dd4bf"]};
-const INSTS={guitar:{n:"Guitar",tun:[4,9,2,7,11,4],lab:["low E","A","D","G","B","high E"]},bass:{n:"Bass",tun:[4,9,2,7],lab:["low E","A","D","G"]},uke:{n:"Ukulele",tun:[7,0,4,9],lab:["G","C","E","A"]},piano:{n:"Piano",tun:null,lab:null}};
+const INSTS={guitar:{n:"Guitar",tun:[4,9,2,7,11,4],lab:["low E","A","D","G","B","high E"],nt:["E","A","D","G","B","E"]},bass:{n:"Bass",tun:[4,9,2,7],lab:["low E","A","D","G"],nt:["E","A","D","G"]},uke:{n:"Ukulele",tun:[7,0,4,9],lab:["G","C","E","A"],nt:["G","C","E","A"]},piano:{n:"Piano",tun:null,lab:null,nt:null}};
 const TIMBRES={piano:{type:"triangle",a:0.004,d:1.35,g:0.30},guitar:{type:"sawtooth",a:0.002,d:0.95,g:0.22},organ:{type:"square",a:0.012,d:1.70,g:0.15},strings:{type:"sawtooth",a:0.090,d:1.90,g:0.20},sine:{type:"sine",a:0.006,d:1.40,g:0.30}};
 const REFMIN=415,REFMAX=466;
 const APPVER="1.0.0";
@@ -389,8 +391,10 @@ const SET=(function(){try{const s=JSON.parse(localStorage.getItem("theorygym.set
 function T(k,p){const d=STR[SET.lang]||{};let s=d[k]!==undefined?d[k]:STR.en[k];if(s===undefined)return k;if(p)for(const x in p)s=s.split("{"+x+"}").join(p[x]);return s}
 const HAS=k=>((STR[SET.lang]||{})[k]!==undefined)||(STR.en[k]!==undefined);
 const mn=k=>HAS("mod."+k)?T("mod."+k):((MODS[k]&&MODS[k].name)||k);
-const cn=k=>HAS("cat."+k)?T("cat."+k):((PRAC[k]&&PRAC[k].n)||k);
-const cs=k=>HAS("cat."+k+".s")?T("cat."+k+".s"):((PRAC[k]&&PRAC[k].sub)||"");
+const catK=k=>((k=="fretboard"&&SET.inst=="piano")?"cat.fretboard.keys":"cat."+k);
+const catS=k=>((k=="fretboard"&&SET.inst=="piano")?"cat.fretboard.keys.s":"cat."+k+".s");
+const cn=k=>HAS(catK(k))?T(catK(k)):((k=="fretboard"&&SET.inst=="piano")?"Keys notes":((PRAC[k]&&PRAC[k].n)||k));
+const cs=k=>HAS(catS(k))?T(catS(k)):((PRAC[k]&&PRAC[k].sub)||"");
 const blurb=k=>HAS("blurb."+k)?T("blurb."+k):BLURB[k];
 function saveSet(){try{localStorage.setItem("theorygym.set",JSON.stringify(SET))}catch(e){}}
 function inst(){return INSTS[SET.inst]||INSTS.guitar}
@@ -419,7 +423,7 @@ function redrawCur(){if(view=="ex"&&exPicked)draw();if(view=="prac"&&!micMode)dr
 function relabel(){applySet();drawHome();titles();
  const pt=$("pracT"),ps=$("pracS");if(pt)pt.innerHTML=T("prac.title");if(ps)ps.innerHTML=T("prac.sub");
  tabs();if(view=="theory")drawTheory();if(view=="ex")drawEx();if(view=="ex"&&exPicked)draw();if(view=="prac")drawPrac();renderStats();drawSet()}
-function drawSet(){const b=$("setbox");if(!b)return;const d=darkNow()?1:0;const ROWS='<div class="setrow"><b>'+T("set.notation")+'</b><div class="seg">'+[["off","set.notation.off"],["neck","set.notation.neck"],["staff","set.notation.staff"]].map(function(t){return '<button class="'+(t[0]==SET.notation?"on":"")+'" onclick="setNotation(&#39;'+t[0]+'&#39;)">'+T(t[1])+'</button>'}).join("")+'</div></div>'+'<div class="setrow"><b>'+T("set.inst")+'</b><div class="seg">'+Object.keys(INSTS).map(function(k){return '<button class="'+(k==SET.inst?"on":"")+'" onclick="setInst(&#39;'+k+'&#39;)">'+T("set.inst."+k)+'</button>'}).join("")+'</div></div>'+'<div class="setrow"><b>'+T("set.timbre")+'</b><div class="seg">'+Object.keys(TIMBRES).map(function(k){return '<button class="'+(k==SET.timbre?"on":"")+'" onclick="setTimbre(&#39;'+k+'&#39;)">'+T("set.timbre."+k)+'</button>'}).join("")+'</div></div>';
+function drawSet(){const b=$("setbox");if(!b)return;const d=darkNow()?1:0;const ROWS='<div class="setrow"><b>'+T("set.notation")+'</b><div class="seg">'+[["off","set.notation.off"],["neck",(SET.inst=="piano"?"set.notation.keys":"set.notation.neck")],["staff","set.notation.staff"]].map(function(t){return '<button class="'+(t[0]==SET.notation?"on":"")+'" onclick="setNotation(&#39;'+t[0]+'&#39;)">'+T(t[1])+'</button>'}).join("")+'</div></div>'+'<div class="setrow"><b>'+T("set.inst")+'</b><div class="seg">'+Object.keys(INSTS).map(function(k){return '<button class="'+(k==SET.inst?"on":"")+'" onclick="setInst(&#39;'+k+'&#39;)">'+T("set.inst."+k)+'</button>'}).join("")+'</div></div>'+'<div class="setrow"><b>'+T("set.timbre")+'</b><div class="seg">'+Object.keys(TIMBRES).map(function(k){return '<button class="'+(k==SET.timbre?"on":"")+'" onclick="setTimbre(&#39;'+k+'&#39;)">'+T("set.timbre."+k)+'</button>'}).join("")+'</div></div>';
  b.innerHTML='<h2>'+T("set.title")+'</h2><p class="hs">'+T("set.sub")+'</p>'
  +'<div class="setrow"><b>'+T("set.lang")+'</b><div class="seg">'+LANGS.map(function(l){return '<button class="'+(l[0]==SET.lang?"on":"")+'" onclick="setLang(&#39;'+l[0]+'&#39;)">'+l[1]+'</button>'}).join("")+'</div></div>'
  +'<div class="setrow"><b>'+T("set.theme")+'</b><div class="seg">'+[["auto","set.auto"],["light","set.light"],["dark","set.dark"]].map(function(t){return '<button class="'+(t[0]==SET.theme?"on":"")+'" onclick="setTheme(&#39;'+t[0]+'&#39;)">'+T(t[1])+'</button>'}).join("")+'</div></div>'
@@ -489,13 +493,24 @@ why:`Take every other scale note from ${t[0]}: ${t.join(' – ')}. The thirds ar
 };
 
 const TUN=[4,9,2,7,11,4],MODE=[[0,2,4,5,7,9,11],[0,2,3,5,7,8,10]],MN=['major','minor'];
-function fretSvg(f,root,iv,w){const tu=inst().tun||INSTS.guitar.tun,n=tu.length,set=iv.map(i=>(root+i)%12),dx=w>5?27:40,x0=12,y0=14,dy=18,off=(6-n)*dy/2,r=w>5?5.5:6.5,fs=w>5?9:11;let s='<svg viewBox="0 0 '+(2*x0+w*dx)+' 124" xmlns="http://www.w3.org/2000/svg" style="display:block">';
+function fretSvg(f,root,iv,w){const tu=inst().tun||INSTS.guitar.tun,n=tu.length,set=iv.map(i=>(root+i)%12),dx=w>5?27:40,x0=26,y0=14,dy=18,off=(6-n)*dy/2,r=w>5?5.5:6.5,fs=w>5?9:11;let s='<svg viewBox="0 0 '+(2*x0+w*dx)+' 124" xmlns="http://www.w3.org/2000/svg" style="display:block">';
 for(let i=0;i<=w;i++){const x=x0+i*dx;s+='<line x1="'+x+'" y1="'+(y0+off)+'" x2="'+x+'" y2="'+(y0+off+(n-1)*dy)+'" style="stroke:var(--mut)" stroke-width="'+(f+i==0?4:1.2)+'"/>'}
 for(let j=0;j<n;j++){const y=y0+off+(n-1-j)*dy;s+='<line x1="'+x0+'" y1="'+y+'" x2="'+(x0+w*dx)+'" y2="'+y+'" style="stroke:var(--mut)" stroke-width="1"/>';
 for(let i=0;i<w;i++){const p=(tu[j]+f+i)%12;if(set.includes(p))s+='<circle cx="'+(x0+(i+.5)*dx)+'" cy="'+y+'" r="'+r+'" style="fill:var(--'+(p==root?'acc':'ink')+')"/>'}}
+for(let j=0;j<n;j++){const y=y0+off+(n-1-j)*dy,nu=(inst().nt||[])[j]||'';s+='<text x="'+(x0-7)+'" y="'+(y+3)+'" text-anchor="end" font-size="'+fs+'" style="fill:var(--mut);font-family:system-ui,sans-serif">'+nu+'</text>'}
 for(let i=0;i<w;i++)s+='<text x="'+(x0+(i+.5)*dx)+'" y="118" text-anchor="middle" font-size="'+fs+'" style="fill:var(--mut);font-family:system-ui,sans-serif">'+(f+i)+'</text>';
 return s+'</svg>'}
-function neckDia(s){return '<div class="neck">'+fretSvg(s.f||0,((s.r%12)+12)%12,s.iv,s.w||13)+'</div>'+(s.cap?'<p class="neckcap">'+s.cap+'</p>':'')}
+function keysSvg(root,iv){
+ const r=((root%12)+12)%12,set=iv.map(function(i){return(((r+i)%12)+12)%12}),WL=[0,2,4,5,7,9,11],W=24,H=96,BW=14,BH=58,n=WL.length*2+1,x0=10,y0=16,VW=x0+n*W+10,VH=y0+H+22;
+ const att=function(p,base){const on=set.indexOf(p)>=0;return on?(' style="fill:var(--acc)"'+(p==r?' data-root="1"':' opacity="0.45"')):(' style="fill:'+base+'"')};
+ let s='<svg viewBox="0 0 '+VW+' '+VH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">';
+ for(let i=0;i<n;i++){const p=WL[i%7],x=x0+i*W;
+  s+='<rect x="'+x+'" y="'+y0+'" width="'+W+'" height="'+H+'" rx="2" stroke="var(--line)" stroke-width="1" data-pc="'+p+'"'+att(p,'var(--bg)')+'/>';
+  s+='<text x="'+(x+W/2)+'" y="'+(y0+H+14)+'" text-anchor="middle" font-size="9" style="fill:var(--mut);font-family:system-ui,sans-serif">'+N[p]+'</text>'}
+ for(let i=0;i<n-1;i++){const p=WL[i%7];if(p==0||p==2||p==5||p==7||p==9){const pb=(p+1)%12,x=x0+(i+1)*W-BW/2;
+  s+='<rect x="'+x+'" y="'+y0+'" width="'+BW+'" height="'+BH+'" rx="2" stroke="var(--line)" stroke-width="1" data-pc="'+pb+'"'+att(pb,'var(--mut)')+'/>'}}
+ return s+'</svg>'}
+function neckDia(s){const r=((s.r%12)+12)%12;return '<div class="neck">'+(SET.inst=='piano'?keysSvg(r,s.iv):fretSvg(s.f||0,r,s.iv,s.w||13))+'</div>'+(s.cap?'<p class="neckcap">'+s.cap+'</p>':'')}
 function neckHtml(n){return (Array.isArray(n)?n:[n]).map(neckDia).join('')}
 function itemNotes(it){if(!it)return null;if(it.seq&&it.seq.length)return{notes:it.seq.slice(),names:(it.labels&&it.labels.length==it.seq.length)?it.labels.slice():null};if(it.audio&&it.audio.length)return{notes:it.audio.slice(),names:null};return null}
 function neckNotes(specs){const sp=(Array.isArray(specs)?specs:[specs])[0];if(!sp||!Array.isArray(sp.iv))return null;const r=((sp.r%12)+12)%12;return{notes:sp.iv.map(function(i){return 60+r+i}),names:sp.iv.map(function(i){return N[((r+i)%12+12)%12]})}}
@@ -519,7 +534,7 @@ function staffSvg(notes,names,cap){const LET={C:0,D:1,E:2,F:3,G:4,A:5,B:6},SL=[0
  s+='</svg>';return '<div class="neck">'+s+'</div>'+(cap?'<p class="neckcap">'+cap+'</p>':'')}
 function staffHtml(notes,names,cap){return staffSvg(notes,names,cap)}
 function notationFor(it){if(!it||!notationOn())return "";
- if(SET.notation=="staff"||!hasNeck()){const ns=itemNotes(it)||neckNotes(it.neck);if(!ns||!ns.notes.length)return "";return staffHtml(ns.notes,ns.names,itemCap(it))}
+ if(SET.notation=="staff"){const ns=itemNotes(it)||neckNotes(it.neck);if(!ns||!ns.notes.length)return "";return staffHtml(ns.notes,ns.names,itemCap(it))}
  if(it.neck)return neckHtml(it.neck);
  const ns=itemNotes(it);if(!ns||!ns.notes.length)return "";
  const r=((ns.notes[0]%12)+12)%12;return neckHtml({r:r,iv:ns.notes.map(function(m){return(((m-r)%12)+12)%12}),cap:itemCap(it)})}
@@ -593,8 +608,13 @@ function mProg(){const k=R(Object.keys(SC)),sc=SC[k].split(' '),deg=[0,3,4,5],ba
  return{mic:true,q:'Play the chord roots of <b>I - IV - V - vi</b> in <b>'+k+' major</b>.',seq:deg.map(d=>base+((pc(sc[d])-pc(k))+12)%12),labels:deg.map(d=>sc[d]+' ('+ROM[d]+')'),hint:T('hint.prog')}}
 function mMode(){const p=mpick(),M=MODES[p.d],base=48+pc(p.root);
  return{mic:true,q:'Play <b>'+p.root+' '+M.n+'</b> starting on '+p.root+'.',seq:M.iv.map(x=>base+x),labels:p.notes,hint:T('hint.mode')}}
+const TASKS_K=[
+ ()=>({task:true,q:'Play every C on the keyboard from the lowest to the highest you can reach, saying the octave number each time.',reveal:'Every C is the white key just left of a group of two black keys. The octave number changes each time you pass a new C: C3, C4, C5 ...',neck:{r:0,iv:[0],cap:'Every C is the white key left of the two black keys'}}),
+ ()=>({task:true,q:'Play the white keys from C to C and name each note as you go: that is the C major scale.',reveal:'C D E F G A B C. The white keys are the natural notes; the black keys are the sharps and flats.',neck:{r:0,iv:[0,2,4,5,7,9,11],cap:'C major on the white keys = C D E F G A B'}}),
+ ()=>({task:true,q:'Find every E on the keyboard and play them in order.',reveal:'E is the white key to the right of the group of two black keys, so once you spot a C the E is two white keys to its right.',neck:{r:4,iv:[0],cap:'Every E sits right of the two black keys'}})
+];
 const PRAC={
- fretboard:{n:'Fretboard notes',ic:'🎸',sub:'Find any note or root, then play it.',gen(){return R([TASKS[4],TASKS[8],TASKS[9]])()}},
+ fretboard:{n:'Fretboard notes',ic:'🎸',sub:'Find any note or root, then play it.',gen(){return R(SET.inst=='piano'?TASKS_K:[TASKS[4],TASKS[8],TASKS[9]])()}},
  scales:{n:'Scales',ic:'🎼',sub:'Play them, one note at a time.',gen(){return R([TASKS[0],TASKS[5],TASKS[10],mScale])()}},
  chords:{n:'Chords & triads',ic:'🎹',sub:'Build them on the neck and play them.',gen(){return R([TASKS[3],TASKS[11],mTriad])()}},
  ear:{n:'Intervals & ear',ic:'👂',sub:'Play the interval you are given on your instrument.',gen(){return mInterval()}},
@@ -651,7 +671,7 @@ let pcat=null,pfree=false,pq=null,pdone=false,pst={c:0,t:0};
 function drawPrac(){const cats=$('pracCats'),run=$('pracRun');if(!cats||!run)return;document.body.classList.toggle('navon',!!(pcat||pfree));tabs();
  if(pcat||pfree){cats.style.display='none';run.style.display=''}
  else{cats.style.display='';run.style.display='none';
-  cats.innerHTML='<button class="pcard" onclick="openFree()"><b><span class="ic">🎤</span>'+T('prac.free')+'</b><span>'+T('prac.frees')+'</span></button>'+Object.keys(PRAC).map(k=>{const c=PRAC[k];return'<button class="pcard" onclick="openCat(\''+k+'\')"><b><span class="ic">'+c.ic+'</span>'+cn(k)+'</b><span>'+cs(k)+'</span>'+(c.note?'<em class="adv">'+T('prac.advanced')+'</em>':'')+'</button>'}).join('');return}
+  cats.innerHTML='<button class="pcard" onclick="openFree()"><b><span class="ic">🎤</span>'+T('prac.free')+'</b><span>'+T('prac.frees')+'</span></button>'+Object.keys(PRAC).map(k=>{const c=PRAC[k],ic=(k=='fretboard'&&SET.inst=='piano')?'🎹':c.ic;return'<button class="pcard" onclick="openCat(\''+k+'\')"><b><span class="ic">'+ic+'</span>'+cn(k)+'</b><span>'+cs(k)+'</span>'+(c.note?'<em class="adv">'+T('prac.advanced')+'</em>':'')+'</button>'}).join('');return}
  if(pfree)renderFree();else renderPrac()}
 function openCat(k){stopMic();pcat=k;pfree=false;pdone=false;pst={c:0,t:0};pself=null;pq=PRAC[k].gen();if(innerWidth<900)document.body.classList.remove('open');drawPrac()}
 function openFree(){stopMic();pcat=null;pfree=true;if(innerWidth<900)document.body.classList.remove('open');drawPrac()}
