@@ -114,10 +114,10 @@ body.v-home main{padding-top:calc(16px + env(safe-area-inset-top,0px))}
 #se{position:fixed;top:calc(9px + env(safe-area-inset-top,0px));right:12px;z-index:6;width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;padding:0}
 body.v-home #se{display:none}
 .gear{position:absolute;top:0;right:0;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;z-index:2}
-#setp{position:fixed;inset:0;z-index:30;display:none;background:rgba(0,0,0,.45);overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) 14px 40px}
-#setp.on{display:block}
-#setbox{max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
-#setbox h2{font-size:21px;margin:0 0 2px}
+#setp,#tunp{position:fixed;inset:0;z-index:30;display:none;background:rgba(0,0,0,.45);overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) 14px 40px}
+#setp.on,#tunp.on{display:block}
+#setbox,#tunebox{max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+#setbox h2,#tunebox h2{font-size:21px;margin:0 0 2px}
 .setrow{margin-top:18px}
 .setrow>b{font:600 12px system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:8px}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
@@ -133,7 +133,7 @@ body.v-home #se{display:none}
 .ver{font:12px system-ui,sans-serif;color:var(--mut);margin:20px 0 0;text-align:center}
 /*END*/
 </style></head><body><header id="bar"><button id="hm" onclick="show('home')" aria-label="Home">⌂</button><button id="se" onclick="openSet()" aria-label="Settings">⚙</button><button id="tg" onclick="tog()" aria-label="Sections">☰</button><span id="ttl">ToniKa</span></header><div id="scrim" onclick="tog()"></div><nav id="side"><div class="nh" id="nh">Sections</div><div class="tabs" id="tabs"></div></nav><main>
-<div id="home"><div class="hero"><div class="logo"><svg viewBox="0 0 100 100" width="64" height="64" role="img" aria-label="ToniKa"><rect x="1.5" y="1.5" width="97" height="97" rx="23" fill="#5B33E0"/><rect x="18" y="12" width="64" height="15" rx="7" fill="#fff"/><rect x="42" y="20" width="16" height="44" rx="8" fill="#fff"/><circle cx="50" cy="78" r="9" fill="#FFB020"/></svg></div><h2 class="ht">ToniKa</h2><p class="hs">Learn music theory by reading it, then play it.</p></div><button class="hcard" onclick="show('theory')"><b><span class="ic">📖</span>Read theory</b><span>Short lessons on intervals, scales, triads, chords and modes.</span></button><button class="hcard" onclick="show('ex')"><b><span class="ic">🎯</span>Exercises</b><span>Questions with the reason behind every answer.</span></button><button class="hcard" onclick="startPractice()"><b><span class="ic">🎸</span>Practical exercises</b><span>Categories of drills and things to play, with a mic that listens.</span></button></div>
+<div id="home"><div class="hero"><div class="logo"><svg viewBox="0 0 100 100" width="64" height="64" role="img" aria-label="ToniKa"><rect x="1.5" y="1.5" width="97" height="97" rx="23" fill="#5B33E0"/><rect x="18" y="12" width="64" height="15" rx="7" fill="#fff"/><rect x="42" y="20" width="16" height="44" rx="8" fill="#fff"/><circle cx="50" cy="78" r="9" fill="#FFB020"/></svg></div><h2 class="ht">ToniKa</h2><p class="hs">Learn music theory by reading it, then play it.</p></div><button class="hcard" onclick="show('theory')"><b><span class="ic">📖</span>Read theory</b><span>Short lessons on intervals, scales, triads, chords and modes.</span></button><button class="hcard" onclick="show('ex')"><b><span class="ic">🎯</span>Exercises</b><span>Questions with the reason behind every answer.</span></button><button class="hcard" onclick="startPractice()"><b><span class="ic">🎸</span>Practical exercises</b><span>Categories of drills and things to play, with a mic that listens.</span></button><button class="hcard" onclick="openTuner()"><b><span class="ic">🎤</span>Tuner</b><span>Play one note at a time: the mic names it and shows how far it sits from in tune.</span></button></div>
 <div id="theory"></div>
 <div id="ex">
 <div id="exCats"></div>
@@ -148,6 +148,7 @@ body.v-home #se{display:none}
 <div id="prac" style="display:none"><h2 class="ht" id="pracT"></h2><p class="hs" id="pracS"></p><div id="pracCats"></div><div id="pracRun" style="display:none"></div></div>
 </main>
 <div id="setp" onclick="if(event.target===this)closeSet()"><div id="setbox"></div></div>
+<div id="tunp" onclick="if(event.target===this)closeTuner()"><div id="tunebox"></div></div>
 <script>
 
 /* ================= language, theme & accent ================= */
@@ -1316,6 +1317,57 @@ const CX5={en:{
 "tip.mode.which":`<h2>Modi unterscheiden</h2><p>Sortiere sie nach Klangfarbe. Dur-artig: Lydisch (♯4), Ionisch, Mixolydisch (♭7). Moll-artig: Dorisch (erhöhte 6.), Äolisch, Phrygisch (♭2), Lokrisch (♭2 und ♭5).</p>`
 }};
 Object.keys(CX5).forEach(function(l){if(!CX[l])return;for(const k in CX5[l])CX[l][k]=CX5[l][k]});
+const CX6={en:{
+"t.14":{guitar:["Play the <b>{kn}</b> scale on the <b>{str}</b> string at fret <b>{fret}</b>, naming each note aloud as you go.","<b>{kn}:</b> {notes}. Fret {fret} on the {str} string is {root}, so start there and climb one octave."],
+piano:["Play the <b>{kn}</b> scale from the <b>{root}</b> nearest the middle of the keyboard, naming each note aloud as you go.","<b>{kn}:</b> {notes}. Start on that {root} and use only the keys of the scale."]}},
+es:{
+"t.14":{guitar:["Toca la escala de <b>{kn}</b> en la cuerda <b>{str}</b>, traste <b>{fret}</b>, nombrando cada nota en voz alta.","<b>{kn}:</b> {notes}. El traste {fret} de la cuerda {str} es {root}, así que empieza ahí y sube una octava."],
+piano:["Toca la escala de <b>{kn}</b> desde el <b>{root}</b> más cercano al centro del teclado, nombrando cada nota en voz alta.","<b>{kn}:</b> {notes}. Empieza en ese {root} y usa solo las teclas de la escala."]}},
+it:{
+"t.14":{guitar:["Suona la scala di <b>{kn}</b> sulla corda <b>{str}</b>, al tasto <b>{fret}</b>, nominando ogni nota ad alta voce.","<b>{kn}:</b> {notes}. Il tasto {fret} della corda {str} è {root}, quindi parti da lì e sali di un'ottava."],
+piano:["Suona la scala di <b>{kn}</b> dal <b>{root}</b> più vicino al centro della tastiera, nominando ogni nota ad alta voce.","<b>{kn}:</b> {notes}. Parti da quel {root} e usa solo i tasti della scala."]}},
+pt:{
+"t.14":{guitar:["Toque a escala de <b>{kn}</b> na corda <b>{str}</b>, casa <b>{fret}</b>, nomeando cada nota em voz alta.","<b>{kn}:</b> {notes}. A casa {fret} da corda {str} é {root}, então comece aí e suba uma oitava."],
+piano:["Toque a escala de <b>{kn}</b> a partir do <b>{root}</b> mais próximo do centro do teclado, nomeando cada nota em voz alta.","<b>{kn}:</b> {notes}. Comece nesse {root} e use apenas as teclas da escala."]}},
+fr:{
+"t.14":{guitar:["Joue la gamme de <b>{kn}</b> sur la corde <b>{str}</b>, case <b>{fret}</b>, en nommant chaque note à voix haute.","<b>{kn}:</b> {notes}. La case {fret} de la corde {str} est {root} : pars de là et monte une octave."],
+piano:["Joue la gamme de <b>{kn}</b> depuis le <b>{root}</b> le plus proche du milieu du clavier, en nommant chaque note à voix haute.","<b>{kn}:</b> {notes}. Pars de ce {root} et n'utilise que les touches de la gamme."]}},
+de:{
+"t.14":{guitar:["Spiele die <b>{kn}</b>-Tonleiter auf der <b>{str}</b>-Saite ab Bund <b>{fret}</b> und benenne jede Note laut.","<b>{kn}:</b> {notes}. Bund {fret} auf der {str}-Saite ist {root} — beginne dort und steige eine Oktave auf."],
+piano:["Spiele die <b>{kn}</b>-Tonleiter vom <b>{root}</b> in der Mitte der Tastatur aus und benenne jede Note laut.","<b>{kn}:</b> {notes}. Beginne auf diesem {root} und nutze nur die Tasten der Tonleiter."]}}};
+Object.keys(CX6).forEach(function(l){if(!CX[l])return;for(const k in CX6[l])CX[l][k]=CX6[l][k]});
+const CX7={en:{
+"mic.notin":"Heard <b>{n}</b> \u2014 not part of this exercise \u00b7 missed so far: {c}"},
+es:{
+"mic.notin":"He o\u00eddo <b>{n}</b>: no forma parte de este ejercicio \u00b7 fallos hasta ahora: {c}"},
+it:{
+"mic.notin":"Ho sentito <b>{n}</b>: non fa parte di questo esercizio \u00b7 errori finora: {c}"},
+pt:{
+"mic.notin":"Ouvi <b>{n}</b>: n\u00e3o faz parte deste exerc\u00edcio \u00b7 falhas at\u00e9 agora: {c}"},
+fr:{
+"mic.notin":"J'ai entendu <b>{n}</b> : il ne fait pas partie de cet exercice \u00b7 manqu\u00e9es jusqu'ici : {c}"},
+de:{
+"mic.notin":"Ich habe <b>{n}</b> geh\u00f6rt: das geh\u00f6rt nicht zu dieser \u00dcbung \u00b7 bisher daneben: {c}"}};
+Object.keys(CX7).forEach(function(l){if(!CX[l])return;for(const k in CX7[l])CX[l][k]=CX7[l][k]});
+const CX8={en:{
+"tuner.t":"Tuner",
+"tuner.s":"Play one note at a time: the mic names it and shows how far it sits from in tune."},
+es:{
+"tuner.t":"Afinador",
+"tuner.s":"Toca una nota a la vez: el micrófono la nombra y muestra cuánto se desvía de la afinación."},
+it:{
+"tuner.t":"Accordatore",
+"tuner.s":"Suona una nota alla volta: il microfono la nomina e mostra quanto è fuori tono."},
+pt:{
+"tuner.t":"Afinador",
+"tuner.s":"Toque uma nota de cada vez: o microfone diz qual é e mostra o quanto está fora do tom."},
+fr:{
+"tuner.t":"Accordeur",
+"tuner.s":"Joue une note à la fois : le micro la nomme et indique son écart d'accord."},
+de:{
+"tuner.t":"Stimmgerät",
+"tuner.s":"Spiele jeweils einen Ton: das Mikrofon nennt ihn und zeigt die Abweichung."}};
+Object.keys(CX8).forEach(function(l){if(!CX[l])return;for(const k in CX8[l])CX[l][k]=CX8[l][k]});
 Object.keys(CX).forEach(function(l){if(!STR[l])return;const d=CX[l];for(const k in d)if(typeof d[k]==="string")STR[l][k]=d[k]});
 function CS(k,p){const t=CX[SET.lang]||{};let s=t[k]!==undefined?t[k]:CX.en[k];if(s===undefined)return k;if(p)for(const x in p)s=s.split("{"+x+"}").join(p[x]);return s}
 
@@ -1348,9 +1400,13 @@ function titles(){const t=$("ttl");if(t)t.textContent=view=="home"?T("app.name")
 function drawHome(){const h=$("home");if(!h)return;h.innerHTML='<button class="gear" onclick="openSet()" aria-label="'+T("set.title")+'">\u2699</button><div class="hero"><div class="logo"><svg viewBox="0 0 100 100" width="64" height="64" role="img" aria-label="ToniKa"><rect x="1.5" y="1.5" width="97" height="97" rx="23" fill="#5B33E0"/><rect x="18" y="12" width="64" height="15" rx="7" fill="#fff"/><rect x="42" y="20" width="16" height="44" rx="8" fill="#fff"/><circle cx="50" cy="78" r="9" fill="#FFB020"/></svg></div><h2 class="ht">'+T("app.name")+'</h2><p class="hs">'+T("home.sub")+'</p></div>'
 +'<button class="hcard" onclick="show(&#39;theory&#39;)"><b><span class="ic">\ud83d\udcd6</span>'+T("home.t")+'</b><span>'+T("home.ts")+'</span></button>'
 +'<button class="hcard" onclick="show(&#39;ex&#39;)"><b><span class="ic">\ud83c\udfaf</span>'+T("home.e")+'</b><span>'+T("home.es")+'</span></button>'
-+'<button class="hcard" onclick="startPractice()"><b><span class="ic">\ud83c\udfb8</span>'+T("home.p")+'</b><span>'+T("home.ps")+'</span></button>'}
++'<button class="hcard" onclick="startPractice()"><b><span class="ic">\ud83c\udfb8</span>'+T("home.p")+'</b><span>'+T("home.ps")+'</span></button>'
++'<button class="hcard" onclick="openTuner()"><b><span class="ic">\ud83c\udfa4</span>'+T("tuner.t")+'</b><span>'+T("tuner.s")+'</span></button>'}
 function openSet(){drawSet();const e=$("setp");if(e)e.className="on"}
 function closeSet(){const e=$("setp");if(e)e.className=""}
+function openTuner(){document.body.classList.remove("open");drawTuner();const e=$("tunp");if(e)e.className="on"}
+function closeTuner(){stopMic();const e=$("tunp");if(e)e.className=""}
+function drawTuner(){const b=$("tunebox");if(!b)return;b.innerHTML='<h2>'+T("tuner.t")+'</h2><p class="sub">'+T("tuner.s")+'</p>'+micFreeBox()+'<div class="row"><button class="btn" onclick="closeTuner()">'+T("set.done")+'</button></div>'}
 function setLang(l){if(!STR[l])return;SET.lang=l;saveSet();relabel()}
 function setTheme(t){SET.theme=t;saveSet();applySet();drawSet()}
 function setAcc(a){SET.acc=a;saveSet();applySet();drawSet()}
@@ -1361,7 +1417,7 @@ function setTimbre(v){SET.timbre=TIMBRES[v]?v:"piano";saveSet();drawSet()}
 function redrawCur(){if(view=="ex"&&exPicked)draw();if(view=="prac"&&!micMode)drawPrac()}
 function relabel(){applySet();drawHome();titles();
  const pt=$("pracT"),ps=$("pracS");if(pt)pt.innerHTML=T("prac.title");if(ps)ps.innerHTML=T("prac.sub");
- tabs();if(view=="theory")drawTheory();if(view=="ex"){drawEx();if(exPicked)next()}if(view=="prac"){if(pcat){pdone=false;pq=PRAC[pcat].gen()}drawPrac()}renderStats();drawSet()}
+ tabs();if(view=="theory")drawTheory();if(view=="ex"){drawEx();if(exPicked)next()}if(view=="prac"){if(pcat){pdone=false;taskReset();pq=PRAC[pcat].gen()}drawPrac()}if($("tunp")&&$("tunp").className=="on")drawTuner();renderStats();drawSet()}
 function drawSet(){const b=$("setbox");if(!b)return;const d=darkNow()?1:0;const ROWS='<div class="setrow"><b>'+T("set.notation")+'</b><div class="seg">'+[["neck",(SET.inst=="piano"?"set.notation.keys":"set.notation.neck")],["staff","set.notation.staff"]].map(function(t){return '<button class="'+(t[0]==SET.notation?"on":"")+'" onclick="setNotation(&#39;'+t[0]+'&#39;)">'+T(t[1])+'</button>'}).join("")+'</div></div>'+'<div class="setrow"><b>'+T("set.inst")+'</b><div class="seg">'+Object.keys(INSTS).map(function(k){return '<button class="'+(k==SET.inst?"on":"")+'" onclick="setInst(&#39;'+k+'&#39;)">'+T("set.inst."+k)+'</button>'}).join("")+'</div></div>';
  b.innerHTML='<h2>'+T("set.title")+'</h2>'
  +'<div class="setrow"><b>'+T("set.lang")+'</b><div class="seg">'+LANGS.map(function(l){return '<button class="'+(l[0]==SET.lang?"on":"")+'" onclick="setLang(&#39;'+l[0]+'&#39;)">'+l[1]+'</button>'}).join("")+'</div></div>'
@@ -1534,19 +1590,21 @@ function TQ(v,c){var k=v[SET.inst]?SET.inst:'guitar',x=v[k];return{q:x[0],reveal
 const rot=(k,n)=>{const s=SC[k].split(' ');return s.slice(n).concat(s.slice(0,n))};
 const TASKS=[
  ()=>{const x=CTS('t.0');return{task:true,q:x.q,reveal:x.reveal,chips:[SC.C.split(' ').concat('C')],neck:{r:0,iv:MODE[0],cap:CS('cap.0')}}},
- ()=>{const x=CTS('t.1');return{task:true,q:x.q,reveal:x.reveal}},
- ()=>{const x=CTS('t.2');return{task:true,q:x.q,reveal:x.reveal}},
- ()=>{const x=CTS('t.3');return{task:true,q:x.q,reveal:x.reveal,neck:[{r:pc('D'),iv:TRI.minor,cap:CS('cap.3a')},{r:pc('D'),iv:TRI.major,cap:CS('cap.3b')}]}},
- ()=>{const x=CTS('t.4');return{task:true,q:x.q,reveal:x.reveal,neck:{r:0,iv:[0],cap:x.cap}}},
+ ()=>{const x=CTS('t.1');return{task:true,q:x.q,reveal:x.reveal,expect:[0,2,4,6,7,9,11]}},
+ ()=>{const x=CTS('t.2');return{task:true,q:x.q,reveal:x.reveal,expect:[4,7,8]}},
+ ()=>{const x=CTS('t.3');return{task:true,q:x.q,reveal:x.reveal,expect:[2,5,6,9],neck:[{r:pc('D'),iv:TRI.minor,cap:CS('cap.3a')},{r:pc('D'),iv:TRI.major,cap:CS('cap.3b')}]}},
+ ()=>{const x=CTS('t.4');return{task:true,q:x.q,reveal:x.reveal,expect:[0],neck:{r:0,iv:[0],cap:x.cap}}},
  ()=>{const x=CTS('t.5');return{task:true,q:x.q,reveal:x.reveal,chips:[MIN.A.split(' ').concat('A'),SC.C.split(' ').concat('C')],neck:[{r:pc('A'),iv:MODE[1],cap:CS('cap.5a')},{r:0,iv:MODE[0],cap:CS('cap.5b')}]}},
- ()=>{const x=CTS('t.6');return{task:true,q:x.q,reveal:x.reveal}},
+ ()=>{const x=CTS('t.6');return{task:true,q:x.q,reveal:x.reveal,expect:[9,4,3]}},
  ()=>{const x=CTS('t.7');return{task:true,q:x.q,reveal:x.reveal,chips:[rot('C',1).concat('D')]}},
  ()=>{const x=CTS('t.8');return{task:true,q:x.q,reveal:x.reveal,chips:[rot('C',2).concat('E')],neck:{r:4,iv:[0,1,3,5,7,8,10],cap:CS('cap.8')}}},
- ()=>{const x=CTS('t.9');return{task:true,q:x.q,reveal:x.reveal,neck:{r:9,iv:[0],cap:x.cap}}},
+ ()=>{const x=CTS('t.9');return{task:true,q:x.q,reveal:x.reveal,expect:[9],neck:{r:9,iv:[0],cap:x.cap}}},
  ()=>{const x=CTS('t.10');return{task:true,q:x.q,reveal:x.reveal,chips:[SC.G.split(' ').concat('G'),rot('G',4).concat('D')]}},
- ()=>{const x=CTS('t.11');return{task:true,q:x.q,reveal:x.reveal,neck:[{r:pc('A'),iv:TRI.major,cap:CS('cap.11a')},{r:pc('A'),iv:TRI.minor,cap:CS('cap.11b')}]}},
- ()=>{const x=CTS('t.12');return{task:true,q:x.q,reveal:x.reveal}},
- ()=>{const x=CTS('t.13');return{task:true,q:x.q,reveal:x.reveal,chips:[rot('C',1).concat('D'),MIN.D.split(' ').concat('D')]}}
+ ()=>{const x=CTS('t.11');return{task:true,q:x.q,reveal:x.reveal,expect:[0,1,4,9],neck:[{r:pc('A'),iv:TRI.major,cap:CS('cap.11a')},{r:pc('A'),iv:TRI.minor,cap:CS('cap.11b')}]}},
+ ()=>{const x=CTS('t.12');return{task:true,q:x.q,reveal:x.reveal,expect:[0,2,4,5,7,9,11]}},
+ ()=>{const x=CTS('t.13');return{task:true,q:x.q,reveal:x.reveal,chips:[rot('C',1).concat('D'),MIN.D.split(' ').concat('D')]}},
+ ()=>randScale(false),
+ ()=>randScale(true)
 ];
 function micScale(m){const k=R(Object.keys(m?MIN:SC)),sc=(m?MIN:SC)[k].split(' '),iv=m?[0,2,3,5,7,8,10,12]:[0,2,4,5,7,9,11,12],base=48+pc(k);
  return{mic:true,q:CS('micq.scale',{k:k,q:CS('voc.'+MN[m])}),seq:iv.map(x=>base+x),labels:sc.concat(sc[0]),hint:T('hint.scale')}}
@@ -1560,14 +1618,20 @@ function mProg(){const k=R(Object.keys(SC)),sc=SC[k].split(' '),deg=[0,3,4,5],ba
  return{mic:true,q:CS('micq.prog',{k:k}),seq:deg.map(d=>base+((pc(sc[d])-pc(k))+12)%12),labels:deg.map(d=>sc[d]+' ('+ROM[d]+')'),hint:T('hint.prog')}}
 function mMode(){const p=mpick(),M=MODES[p.d],base=48+pc(p.root);
  return{mic:true,q:CS('micq.mode',{root:p.root,mode:MD(M.n)}),seq:M.iv.map(x=>base+x),labels:p.notes,hint:T('hint.mode')}}
+function randSpot(r){const L=NECKSTR[SET.inst];if(!L)return null;const out=[];L.forEach(function(x){for(let f=1;f<=9;f++)if(((x[1]+f)%12+12)%12===r)out.push({s:x[0],f:f})});return out.length?R(out):null}
+const NECKSTR={guitar:[['E',4],['A',9],['D',2],['G',7],['B',11],['E',4]],bass:[['E',4],['A',9],['D',2],['G',7]],uke:[['G',7],['C',0],['E',4],['A',9]]};
+function CTSp(id,p){const t=CTS(id),S=function(s){if(!s)return s;for(const k in p)s=s.split('{'+k+'}').join(p[k]);return s};return{q:S(t.q),reveal:S(t.reveal),cap:t.cap?S(t.cap):t.cap}}
+function randScale(minor){const T=minor?MIN:SC,root=R(Object.keys(T)),notes=T[root].split(' '),oct=notes.concat(notes[0]),sp=randSpot(pc(root)),kn=KQ(root,CS('voc.'+(minor?'minor':'major')));
+ const x=CTSp('t.14',{kn:kn,root:root,str:sp?sp.s:'',fret:sp?sp.f:'',notes:oct.join(' ')});
+ return{task:true,rand:true,q:x.q,reveal:x.reveal,chips:[oct],neck:{r:pc(root),iv:minor?MODE[1]:MODE[0],cap:CS('cap.scale',{kn:kn,sc:T[root]})}}}
 const TASKS_K=[
- ()=>{const x=CTS('tk.0');return{task:true,q:x.q,reveal:x.reveal,neck:{r:0,iv:[0],cap:CS('cap.tk0')}}},
+ ()=>{const x=CTS('tk.0');return{task:true,q:x.q,reveal:x.reveal,expect:[0],neck:{r:0,iv:[0],cap:CS('cap.tk0')}}},
  ()=>{const x=CTS('tk.1');return{task:true,q:x.q,reveal:x.reveal,chips:[SC.C.split(' ').concat('C')],neck:{r:0,iv:[0,2,4,5,7,9,11],cap:CS('cap.tk1')}}},
- ()=>{const x=CTS('tk.2');return{task:true,q:x.q,reveal:x.reveal,neck:{r:4,iv:[0],cap:CS('cap.tk2')}}}
+ ()=>{const x=CTS('tk.2');return{task:true,q:x.q,reveal:x.reveal,expect:[4],neck:{r:4,iv:[0],cap:CS('cap.tk2')}}}
 ];
 const PRAC={
  fretboard:{n:'Fretboard notes',ic:'🎸',sub:'Find any note or root, then play it.',gen(){return R(SET.inst=='piano'?TASKS_K:[TASKS[4],TASKS[8],TASKS[9]])()}},
- scales:{n:'Scales',ic:'🎼',sub:'Play them, one note at a time.',gen(){return R([TASKS[0],TASKS[5],TASKS[10],mScale])()}},
+ scales:{n:'Scales',ic:'🎼',sub:'Play them, one note at a time.',gen(){return R([TASKS[0],TASKS[5],TASKS[10],TASKS[14],TASKS[15],mScale])()}},
  chords:{n:'Chords & triads',ic:'🎹',sub:'Build them on the neck and play them.',gen(){return R([TASKS[3],TASKS[11],mTriad])()}},
  ear:{n:'Intervals & ear',ic:'👂',sub:'Play the interval you are given on your instrument.',gen(){return mInterval()}},
  prog:{n:'Progressions',ic:'🔁',sub:'Play the chords that belong together.',gen(){return R([TASKS[1],TASKS[12],mProg])()}},
@@ -1600,7 +1664,8 @@ let view='home',tp=null;
 function show(v){view=v;const b=document.body.classList;b.remove('v-home','v-theory','v-ex','v-prac');b.add('v-'+v);['home','theory','ex','prac'].forEach(x=>{const e=$(x);if(e)e.style.display=x==v?'':'none'});
 stopMic();
 if(v=='ex')exPicked=false;
-if(v=='prac'){pcat=null;pfree=false}
+if(v=='prac')pcat=null;
+ const tpp=$('tunp');if(tpp&&tpp.className=='on')tpp.className=''
 b.remove('navon');
 if((v=='ex'||v=='prac')&&innerWidth>=900)b.add('open');else b.remove('open');
 if(v=='ex')drawEx();
@@ -1613,30 +1678,37 @@ function drawTheory(){$('theory').innerHTML=tp?'<button class="btn alt" onclick=
 function practice(k){show('ex');go(k)}
 function startPractice(){show('prac')}
 /* ===== practical exercises screen ===== */
-let pcat=null,pfree=false,pq=null,pdone=false,pst={c:0,t:0};
-function drawPrac(){const cats=$('pracCats'),run=$('pracRun');if(!cats||!run)return;document.body.classList.toggle('navon',!!(pcat||pfree));tabs();
- if(pcat||pfree){cats.style.display='none';run.style.display=''}
+let pcat=null,pq=null,pdone=false,pst={c:0,t:0};
+function drawPrac(){const cats=$('pracCats'),run=$('pracRun');if(!cats||!run)return;document.body.classList.toggle('navon',!!pcat);tabs();
+ if(pcat){cats.style.display='none';run.style.display=''}
  else{cats.style.display='';run.style.display='none';
-  cats.innerHTML='<button class="pcard" onclick="openFree()"><b><span class="ic">🎤</span>'+T('prac.free')+'</b><span>'+T('prac.frees')+'</span></button>'+Object.keys(PRAC).map(k=>{const c=PRAC[k],ic=(k=='fretboard'&&SET.inst=='piano')?'🎹':c.ic;return'<button class="pcard" onclick="openCat(\''+k+'\')"><b><span class="ic">'+ic+'</span>'+cn(k)+'</b><span>'+cs(k)+'</span>'+(c.note?'<em class="adv">'+T('prac.advanced')+'</em>':'')+'</button>'}).join('');return}
- if(pfree)renderFree();else renderPrac()}
-function openCat(k){stopMic();pcat=k;pfree=false;pdone=false;pst={c:0,t:0};pself=null;pq=PRAC[k].gen();document.body.classList.remove('open');drawPrac()}
-function openFree(){stopMic();pcat=null;pfree=true;document.body.classList.remove('open');drawPrac()}
-function closeCat(){stopMic();pcat=null;pfree=false;drawPrac()}
-function nextPrac(){stopMic();pdone=false;pself=null;pq=PRAC[pcat].gen();renderPrac()}
+  cats.innerHTML=Object.keys(PRAC).map(k=>{const c=PRAC[k],ic=(k=='fretboard'&&SET.inst=='piano')?'🎹':c.ic;return'<button class="pcard" onclick="openCat(\''+k+'\')"><b><span class="ic">'+ic+'</span>'+cn(k)+'</b><span>'+cs(k)+'</span>'+(c.note?'<em class="adv">'+T('prac.advanced')+'</em>':'')+'</button>'}).join('');return}
+ renderPrac()}
+function openCat(k){stopMic();pcat=k;pdone=false;pst={c:0,t:0};pself=null;taskReset();pq=PRAC[k].gen();document.body.classList.remove('open');drawPrac()}
+function closeCat(){stopMic();pcat=null;drawPrac()}
+function nextPrac(){stopMic();pdone=false;pself=null;taskReset();pq=PRAC[pcat].gen();renderPrac()}
 function revealPrac(){pdone=true;renderPrac()}
-function pscore(ok){if(pself!==null)return;pself=!!ok;pst.t++;if(ok)pst.c++;record(!!ok);renderPrac()}
+function pscore(ok){if(pself!==null)return;const good=!!ok&&!pMiss;pself=good;pst.t++;if(good)pst.c++;record(good);renderPrac()}
 function pStatUpd(){const e=$('pStat');if(e)e.textContent=T('score',{c:pst.c,t:pst.t})}
 function pickPrac(i){if(pdone)return;pdone=pq.opts[i];pst.t++;if(pdone==pq.ans)pst.c++;renderPrac()}
 function pracDia(){return (notationOn()&&pq&&!pq.noChips)?notationFor(pq):''}
 function renderPrac(){const c=PRAC[pcat];let body='';const nx=notationOn()?notationFor(pq):((pdone&&pq.neck)?neckHtml(pq.neck):'');
- if(pq.task){const ch=pq.chips?pq.chips.map(g=>'<div class="chips">'+g.map(n=>'<span class="chip">'+n+'</span>').join('')+'</div>').join(''):'';body='<p class="q">'+pq.q+'</p><p class="hs">'+T('hint.task')+'</p>'+ch+micFreeBox()+(pdone?('<div class="fb ok"><b>'+T('check')+'</b> '+pq.reveal+'</div>'+nx+'<div class="row">'+(pself===null?'<button class="btn" onclick="pscore(true)">'+T('gotit')+'</button><button class="btn alt" onclick="pscore(false)">'+T('missedit')+'</button>':'<span class="stat">'+T('score',{c:pst.c,t:pst.t})+'</span>')+'</div>'):'<div class="row"><button class="btn" onclick="revealPrac()">'+T('btn.reveal')+'</button><span class="stat">'+T('tryfirst')+'</span></div>')}
+ if(pq.task){prepPrac();const missed=pq.tseq?mWrong:pMiss;const ch=pq.chips?pq.chips.map(g=>'<div class="chips">'+g.map(n=>'<span class="chip">'+n+'</span>').join('')+'</div>').join(''):'';body='<p class="q">'+pq.q+'</p><p class="hs">'+T('hint.task')+'</p>'+(ch?'<div id="mChips">'+ch+'</div>':'')+(pq.tseq?micSeqBox():micFreeBox())+(pdone?('<div class="fb '+(missed?'no':'ok')+'"><b>'+T('check')+'</b> '+pq.reveal+(missed?'<div style="margin-top:6px">'+T(missed>1?'mic.donen':'mic.done1',{n:missed})+'</div>':'')+'</div>'+nx+pReport()):'<div class="row"><button class="btn" onclick="revealPrac()">'+T('btn.reveal')+'</button><span class="stat">'+T('tryfirst')+'</span></div>')}
  else if(pq.mic){body='<p class="q">'+pq.q+'</p><p class="hs">'+(pq.hint||'')+'</p>'+(pq.noChips?'':'<div class="chips" id="mChips">'+pq.labels.map((l,i)=>'<span class="chip" data-i="'+i+'">'+T(l)+'</span>').join('')+'</div>')+'<div class="micbox"><div class="micnote" id="mNote">—</div><div class="miccents" id="mCents">'+T('mic.pressstart')+'</div><div class="micbar"><span id="mNeedle"></span></div></div><div class="row"><button class="btn" onclick="micStartSeq()">'+T('btn.start')+'</button>'+(pq.replay?'<button class="btn alt" onclick="hearPrac()">'+T(pq.replay)+'</button>':'')+'<button class="btn alt" onclick="stopMic()">'+T('btn.stop')+'</button><span class="stat" id="mStat">'+T('score',{c:0,t:pq.seq.length})+'</span></div><div id="mDia"></div><p class="micro" id="mMsg"></p>'}
  else{body='<p class="q">'+pq.q+'</p><div class="opts'+(pq.wide?' w1':'')+'">'+pq.opts.map((o,i)=>'<button class="'+(pdone?(o==pq.ans?'ok':(o==pdone?'no':'')):'')+'" onclick="'+(pdone?'':'pickPrac('+i+')')+'">'+o+(pdone&&pq.labels?'<br><small>'+pq.labels[o]+'</small>':'')+'</button>').join('')+'</div>'+(pdone?'<div class="fb '+(pdone==pq.ans?'ok':'no')+'"><b>'+(pdone==pq.ans?T('correct'):T('notquite'))+'</b> '+pq.why+(pq.extra?'<div style="margin-top:8px">'+pq.extra+'</div>':'')+'</div>':'')+nx}
  $('pracRun').innerHTML='<button class="btn alt" onclick="closeCat()">\u2190 '+T('btn.back')+'</button><h2 class="ht">'+cn(pcat)+'</h2>'+body+'<div class="row"><button class="btn" onclick="nextPrac()">'+T('btn.another')+'</button><span class="stat" id="pStat">'+T('score',{c:pst.c,t:pst.t})+'</span></div><div class="card" id="pstats"></div>';renderStats()}
+function taskReset(){pMiss=0;mWrong=0;mOk=[];mI=0}
+function prepPrac(){if(!pq||!pq.task)return;
+ if(pq.chips&&!pq.tseq){const s=[],l=[];let cur=null;
+  pq.chips.forEach(function(g){g.forEach(function(n){const p=pc(n);if(cur===null)s.push(60+p);else{let d=(((p-(cur%12))%12)+12)%12;if(!d)d=12;s.push(cur+d)}cur=s[s.length-1];l.push(n)})});
+  pq.tseq=s;pq.tlab=l}
+ if(!pq.expect&&pq.tseq)pq.expect=pq.tseq.map(function(m){return ((m%12)+12)%12})}
+function pReport(){return pself===null?'<div class="row"><button class="btn" onclick="pscore(true)">'+T('gotit')+'</button><button class="btn alt" onclick="pscore(false)">'+T('missedit')+'</button></div>':'<div class="row"><span class="stat">'+T('score',{c:pst.c,t:pst.t})+'</span></div>'}
+function micSeqBox(){return '<div class="micbox"><div class="micnote" id="mNote">\u2014</div><div class="miccents" id="mCents">'+T('mic.pressstart')+'</div><div class="micbar"><span id="mNeedle"></span></div></div><div class="row"><button class="btn" onclick="micStartSeq()">'+T('btn.start')+'</button><button class="btn alt" onclick="hearPrac()">'+T('btn.hear')+'</button><button class="btn alt" onclick="stopMic()">'+T('btn.stop')+'</button><span class="stat" id="mStat">'+T('score',{c:0,t:(pq.tseq||pq.seq).length})+'</span></div><div id="mDia"></div><p class="micro" id="mMsg"></p>'}
+function pracMiss(midi){pMiss++;micMsg(T('mic.notin',{n:N[((midi%12)+12)%12],c:pMiss}))}
 function micFreeBox(){return '<div class="micbox"><div class="micnote" id="mNote">—</div><div class="miccents" id="mCents">'+T('mic.pressstart')+'</div><div class="micbar"><span id="mNeedle"></span></div></div><div class="row"><button class="btn" onclick="micFree()">'+T('btn.start')+'</button><button class="btn alt" onclick="stopMic()">'+T('btn.stop')+'</button></div><p class="micro" id="mMsg"></p>'}
-function renderFree(){$('pracRun').innerHTML='<button class="btn alt" onclick="closeCat()">\u2190 '+T('btn.back')+'</button><h2 class="ht">'+T('prac.free')+'</h2><p class="hs">'+T('free.sub')+'</p>'+micFreeBox()+'<div class="card" id="pstats"></div>';renderStats()}
 /* ===== microphone listening ===== */
-let mCtx=null,mStream=null,mAn=null,mBuf=null,mRAF=0,mTick=0,micMode=null,mSeq=[],mLabels=[],mI=0,mOk=[],mWrong=0,mLast=null,mStable=0;
+let mCtx=null,mStream=null,mAn=null,mBuf=null,mRAF=0,mTick=0,micMode=null,mSeq=[],mLabels=[],mI=0,mOk=[],mWrong=0,mLast=null,mStable=0,pMiss=0;
 function micMsg(t){const e=$('mMsg');if(e)e.innerHTML=t}
 async function micOn(){if(typeof navigator==='undefined'||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){micMsg(T('mic.nosupport'));return false}
  micOff();
@@ -1646,9 +1718,9 @@ async function micOn(){if(typeof navigator==='undefined'||!navigator.mediaDevice
  const src=mCtx.createMediaStreamSource(mStream);mAn=mCtx.createAnalyser();mAn.fftSize=2048;mBuf=new Float32Array(mAn.fftSize);src.connect(mAn);
  if(typeof requestAnimationFrame!=='undefined')mRAF=requestAnimationFrame(micLoop);
  return true}
-function micFree(){micMode='free';mSeq=[];mLabels=[];mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;micOn().then(ok=>{if(ok)micMsg(T('mic.listen'))})}
-function micStartSeq(){micMode='seq';mSeq=pq.seq.slice();mLabels=pq.labels.slice();mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;chipUpdate();micOn().then(ok=>{if(ok)micMsg(T('mic.listenSeq'))})}
-function hearPrac(){stopMic();mSeq=pq.seq.slice();mLabels=pq.labels.slice();mI=0;mOk=[];mWrong=0;chipUpdate();playSeq(pq.seq);micMsg(T('mic.hear'))}
+function micFree(){micMode='free';mSeq=[];mLabels=[];mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;pMiss=0;micOn().then(ok=>{if(ok)micMsg(T('mic.listen'))})}
+function micStartSeq(){micMode='seq';const S=pq.tseq||pq.seq,L=pq.tlab||pq.labels;mSeq=S.slice();mLabels=L.slice();mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;pMiss=0;chipUpdate();micOn().then(ok=>{if(ok)micMsg(T('mic.listenSeq'))})}
+function hearPrac(){stopMic();const S=pq.tseq||pq.seq,L=pq.tlab||pq.labels;mSeq=S.slice();mLabels=L.slice();mI=0;mOk=[];mWrong=0;chipUpdate();playSeq(S);micMsg(T('mic.hear'))}
 function micOff(){if(mRAF&&typeof cancelAnimationFrame!=='undefined')cancelAnimationFrame(mRAF);mRAF=0;if(mStream){try{mStream.getTracks().forEach(t=>t.stop())}catch(e){}mStream=null}mAn=null}
 function stopMic(){micOff();micMode=null;const n=$('mNote'),c=$('mCents');if(n)n.textContent='—';if(c)c.textContent=T('mic.stopped')}
 let mYin=null,mCmnd=null;
@@ -1674,13 +1746,13 @@ function micLoop(){if(typeof requestAnimationFrame!=='undefined')mRAF=requestAni
  if(cEl)cEl.textContent=(dev>0?'+':'')+dev.toFixed(0)+T('mic.cents')+(Math.abs(dev)<=15?' \u00b7 '+T('mic.intune')+'':'');
  if(nd)nd.style.left=(50+Math.max(-45,Math.min(45,dev*0.9)))+'%';
  if(midi===mLast)mStable++;else{mLast=midi;mStable=1}
- if(micMode==='seq'&&mStable===4)registerNote(midi)}
+ if(micMode==='seq'&&mStable===4)registerNote(midi);else if(micMode==='free'&&mStable===4&&pq&&pq.expect&&pq.expect.indexOf(((midi%12)+12)%12)<0)pracMiss(midi)}
 function chipUpdate(){const c=$('mChips');if(c&&c.querySelectorAll)c.querySelectorAll('.chip').forEach((el,i)=>{el.className='chip'+(mOk[i]?' '+mOk[i]:'')+(i===mI&&mI<mSeq.length?' now':'')});const st=$('mStat');if(st)st.textContent=T('score',{c:mI,t:mSeq.length})}
 function registerNote(midi){if(mI>=mSeq.length)return;const p=((midi%12)+12)%12,tgt=((mSeq[mI]%12)+12)%12;
  if(p===tgt){mOk[mI]='ok';mI++;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
- if(!(pq&&pq.strict))for(let j=mI+1;j<mSeq.length;j++)if(((mSeq[j]%12)+12)%12===p){for(let z=mI;z<j;z++)if(!mOk[z])mOk[z]='skip';mOk[j]='ok';mI=j+1;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
+ if(!(pq&&pq.strict))for(let j=mI+1;j<mSeq.length;j++)if(((mSeq[j]%12)+12)%12===p){for(let z=mI;z<j;z++)if(!mOk[z]){mOk[z]='skip';mWrong++}mOk[j]='ok';mI=j+1;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
  mWrong++;if(!mOk[mI])mOk[mI]='bad';chipUpdate();micMsg(T('mic.wrong',{n:N[p],want:T(mLabels[mI])}))}
-function finishSeq(){pst.t++;if(!mWrong)pst.c++;record(!mWrong);pStatUpd();micMode='done';micMsg((mWrong?(mWrong>1?T('mic.donen',{n:mWrong}):T('mic.done1')):T('mic.done'))+(pq&&pq.doneMsg?'<br>'+pq.doneMsg:''));const dd=document.getElementById('mDia');if(dd)dd.innerHTML=pracDia()}
+function finishSeq(){pst.t++;if(!mWrong)pst.c++;record(!mWrong);pStatUpd();pself=!mWrong;micMode='done';micMsg((mWrong?(mWrong>1?T('mic.donen',{n:mWrong}):T('mic.done1')):T('mic.done'))+(pq&&pq.doneMsg?'<br>'+pq.doneMsg:''));const dd=document.getElementById('mDia');if(dd)dd.innerHTML=pracDia()}
 let cur='intervals',st={},q=null,done=false,exPicked=false,pself=null;
 const EXIC={intervals:'🎵',ear:'👂',keys:'🎼',triads:'🎹',harmony:'🔗',modes:'✨'};
 const $=id=>document.getElementById(id);
