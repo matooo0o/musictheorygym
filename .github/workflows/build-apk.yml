@@ -41,6 +41,10 @@ jobs:
             exit 1
           fi
           "$APKSIGNER" verify --print-certs "ToniKa-${APP_VERSION}.apk" | tee certs.txt
+          echo "=== Full certs output ==="
+          cat certs.txt
+          echo "=== Normalized for grep ==="
+          tr -d ':' < certs.txt | tr '[:upper:]' '[:lower:]' | grep -i "sha-256" || true
           if ! tr -d ':' < certs.txt | tr '[:upper:]' '[:lower:]' | grep -q "sha-256 digest: ${APP_CERT_SHA256}"; then
             echo "::error::This APK is not signed with the ToniKa key, so Android would refuse to install it over the previous version."
             exit 1
