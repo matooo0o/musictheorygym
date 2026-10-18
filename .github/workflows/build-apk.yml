@@ -24,9 +24,10 @@ jobs:
       - name: Declare microphone permission
         run: node scripts/android-permissions.js
       - name: Sign with the app key
-        run: node scripts/android-signing.js
-      - name: Debug build.gradle
-        run: cat android/app/build.gradle
+        run: |
+          node scripts/android-signing.js
+          echo "=== build.gradle after signing ==="
+          cat android/app/build.gradle
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - name: Name the APK after the version
         run: cp android/app/build/outputs/apk/debug/app-debug.apk "ToniKa-${APP_VERSION}.apk"
