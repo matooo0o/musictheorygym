@@ -18,22 +18,24 @@ jobs:
       - name: Stamp the version
         run: node scripts/set-version.js
       - run: npx cap sync android
+      - name: Draw the launcher icon
+        run: node scripts/brand.js
       - name: Declare microphone permission
         run: node scripts/android-permissions.js
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - name: Name the APK after the version
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk "TheoryGym-${APP_VERSION}.apk"
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk "ToniKa-${APP_VERSION}.apk"
       - uses: actions/upload-artifact@v4
         with:
-          name: TheoryGym-${{ env.APP_VERSION }}
-          path: TheoryGym-${{ env.APP_VERSION }}.apk
+          name: ToniKa-${{ env.APP_VERSION }}
+          path: ToniKa-${{ env.APP_VERSION }}.apk
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view "v${APP_VERSION}" >/dev/null 2>&1; then
-            gh release upload "v${APP_VERSION}" "TheoryGym-${APP_VERSION}.apk" --clobber
+            gh release upload "v${APP_VERSION}" "ToniKa-${APP_VERSION}.apk" --clobber
           else
-            gh release create "v${APP_VERSION}" "TheoryGym-${APP_VERSION}.apk" \
-              --title "Theory Gym v${APP_VERSION}" --generate-notes
+            gh release create "v${APP_VERSION}" "ToniKa-${APP_VERSION}.apk" \
+              --title "ToniKa v${APP_VERSION}" --generate-notes
           fi
