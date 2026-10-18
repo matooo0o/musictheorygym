@@ -25,6 +25,7 @@ jobs:
         run: node scripts/android-permissions.js
       - name: Sign with the app key
         run: |
+          ls -la signing/
           node scripts/android-signing.js
           echo "=== build.gradle after signing ==="
           cat android/app/build.gradle
@@ -47,7 +48,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ToniKa-${{ env.APP_VERSION }}
-          path: ToniKa-${{ env.APP_VERSION }}.apk
+          path: ToniKa-${APP_VERSION}.apk
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
