@@ -22,10 +22,24 @@ node scripts/set-version.js
 npx cap sync android
 node scripts/brand.js
 node scripts/android-permissions.js
+node scripts/android-signing.js
 cd android && ./gradlew assembleDebug
 ```
 
 The APK lands in `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+## Updates on the phone
+
+Every build is signed with the same key (`signing/tonika.jks`), so a new APK
+installs straight over the previous one. Without that, each CI run would use a
+fresh debug keystore and Android would reject the update with "signatures do not
+match previously installed version".
+
+If the installed copy was built before the stable key existed, uninstall it
+once; from then on updates install normally.
+
+The version shown in Settings is the same number as the GitHub release and the
+APK file name.
 
 ## What the scripts do
 
@@ -34,3 +48,5 @@ The APK lands in `android/app/build/outputs/apk/debug/app-debug.apk`.
   layers) and sets the app label in `values/strings.xml`.
 - `scripts/android-permissions.js` – declares the microphone permission in the
   manifest, which `cap sync` would otherwise leave out.
+- `scripts/android-signing.js` – signs the build with `signing/tonika.jks`, so
+  updates keep installing over the previous version.
