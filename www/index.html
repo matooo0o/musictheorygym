@@ -1404,8 +1404,9 @@ function drawHome(){const h=$("home");if(!h)return;h.innerHTML='<button class="g
 +'<button class="hcard" onclick="openTuner()"><b><span class="ic">\ud83c\udfa4</span>'+T("tuner.t")+'</b><span>'+T("tuner.s")+'</span></button>'}
 function openSet(){drawSet();const e=$("setp");if(e)e.className="on"}
 function closeSet(){const e=$("setp");if(e)e.className=""}
-function openTuner(){document.body.classList.remove("open");drawTuner();const e=$("tunp");if(e)e.className="on"}
-function closeTuner(){stopMic();const e=$("tunp");if(e)e.className=""}
+let tunerOn=false;
+function openTuner(){document.body.classList.remove("open");tunerOn=true;drawTuner();const e=$("tunp");if(e)e.className="on"}
+function closeTuner(){tunerOn=false;stopMic();const e=$("tunp");if(e)e.className=""}
 function drawTuner(){const b=$("tunebox");if(!b)return;b.innerHTML='<h2>'+T("tuner.t")+'</h2><p class="sub">'+T("tuner.s")+'</p>'+micFreeBox()+'<div class="row"><button class="btn" onclick="closeTuner()">'+T("set.done")+'</button></div>'}
 function setLang(l){if(!STR[l])return;SET.lang=l;saveSet();relabel()}
 function setTheme(t){SET.theme=t;saveSet();applySet();drawSet()}
@@ -1665,7 +1666,7 @@ function show(v){view=v;const b=document.body.classList;b.remove('v-home','v-the
 stopMic();
 if(v=='ex')exPicked=false;
 if(v=='prac')pcat=null;
- const tpp=$('tunp');if(tpp&&tpp.className=='on')tpp.className=''
+ closeTuner();
 b.remove('navon');
 if((v=='ex'||v=='prac')&&innerWidth>=900)b.add('open');else b.remove('open');
 if(v=='ex')drawEx();
@@ -1746,7 +1747,7 @@ function micLoop(){if(typeof requestAnimationFrame!=='undefined')mRAF=requestAni
  if(cEl)cEl.textContent=(dev>0?'+':'')+dev.toFixed(0)+T('mic.cents')+(Math.abs(dev)<=15?' \u00b7 '+T('mic.intune')+'':'');
  if(nd)nd.style.left=(50+Math.max(-45,Math.min(45,dev*0.9)))+'%';
  if(midi===mLast)mStable++;else{mLast=midi;mStable=1}
- if(micMode==='seq'&&mStable===4)registerNote(midi);else if(micMode==='free'&&mStable===4&&pq&&pq.expect&&pq.expect.indexOf(((midi%12)+12)%12)<0)pracMiss(midi)}
+ if(micMode==='seq'&&mStable===4)registerNote(midi);else if(micMode==='free'&&mStable===4&&!tunerOn&&pq&&pq.expect&&pq.expect.indexOf(((midi%12)+12)%12)<0)pracMiss(midi)}
 function chipUpdate(){const c=$('mChips');if(c&&c.querySelectorAll)c.querySelectorAll('.chip').forEach((el,i)=>{el.className='chip'+(mOk[i]?' '+mOk[i]:'')+(i===mI&&mI<mSeq.length?' now':'')});const st=$('mStat');if(st)st.textContent=T('score',{c:mI,t:mSeq.length})}
 function registerNote(midi){if(mI>=mSeq.length)return;const p=((midi%12)+12)%12,tgt=((mSeq[mI]%12)+12)%12;
  if(p===tgt){mOk[mI]='ok';mI++;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
