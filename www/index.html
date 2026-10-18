@@ -109,8 +109,28 @@ body.v-home main{padding-top:calc(16px + env(safe-area-inset-top,0px))}
 .micro{font:13px system-ui,sans-serif;color:var(--mut);min-height:18px;margin:8px 0 0}
 .neck{overflow-x:auto;margin:14px 0 0;padding-bottom:2px}
 .neckcap{font:12px system-ui,sans-serif;color:var(--mut);text-align:center;margin:8px 0 0}
+/*SET*/
+#se{position:fixed;top:calc(9px + env(safe-area-inset-top,0px));right:12px;z-index:6;width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;padding:0}
+body.v-home #se{display:none}
+.gear{position:absolute;top:0;right:0;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;z-index:2}
+#setp{position:fixed;inset:0;z-index:30;display:none;background:rgba(0,0,0,.45);overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) 14px 40px}
+#setp.on{display:block}
+#setbox{max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+#setbox h2{font-size:21px;margin:0 0 2px}
+.setrow{margin-top:18px}
+.setrow>b{font:600 12px system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:8px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:10px 14px;font:15px system-ui,sans-serif;cursor:pointer}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.sw{width:42px;height:42px;border-radius:50%;border:3px solid var(--line);cursor:pointer;padding:0}
+.sw.on{border-color:var(--ink)}
+.tune{display:flex;align-items:center;gap:10px}
+.tune input[type=range]{flex:1;min-width:0;accent-color:var(--acc)}
+.tune input[type=number]{width:84px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:15px system-ui,sans-serif}
+.tune .hz{color:var(--mut);font:14px system-ui,sans-serif}
+.tunehint{font:12px system-ui,sans-serif;color:var(--mut);margin:8px 0 0}
 /*END*/
-</style></head><body><header id="bar"><button id="hm" onclick="show('home')" aria-label="Home">⌂</button><button id="tg" onclick="tog()" aria-label="Sections">☰</button><span id="ttl">Theory Gym</span></header><div id="scrim" onclick="tog()"></div><nav id="side"><div class="nh" id="nh">Sections</div><div class="tabs" id="tabs"></div></nav><main>
+</style></head><body><header id="bar"><button id="hm" onclick="show('home')" aria-label="Home">⌂</button><button id="se" onclick="openSet()" aria-label="Settings">⚙</button><button id="tg" onclick="tog()" aria-label="Sections">☰</button><span id="ttl">Theory Gym</span></header><div id="scrim" onclick="tog()"></div><nav id="side"><div class="nh" id="nh">Sections</div><div class="tabs" id="tabs"></div></nav><main>
 <div id="home"><div class="hero"><div class="logo">🎼</div><h2 class="ht">Theory Gym</h2><p class="hs">Learn music theory by reading it, then play it.</p></div><button class="hcard" onclick="show('theory')"><b><span class="ic">📖</span>Read theory</b><span>Short lessons on intervals, scales, triads, chords and modes.</span></button><button class="hcard" onclick="show('ex')"><b><span class="ic">🎯</span>Exercises</b><span>Questions with the reason behind every answer.</span></button><button class="hcard" onclick="startPractice()"><b><span class="ic">🎸</span>Practical exercises</b><span>Categories of drills and things to play, with a mic that listens.</span></button></div>
 <div id="theory"></div>
 <div id="ex">
@@ -123,9 +143,273 @@ body.v-home main{padding-top:calc(16px + env(safe-area-inset-top,0px))}
 <div class="card" id="stats"></div>
 </div>
 </div>
-<div id="prac" style="display:none"><h2 class="ht">Practical exercises</h2><p class="hs">Play it, hear it, fix it. Pick a category, or let the mic listen while you play.</p><div id="pracCats"></div><div id="pracRun" style="display:none"></div></div>
+<div id="prac" style="display:none"><h2 class="ht" id="pracT"></h2><p class="hs" id="pracS"></p><div id="pracCats"></div><div id="pracRun" style="display:none"></div></div>
 </main>
+<div id="setp" onclick="if(event.target===this)closeSet()"><div id="setbox"></div></div>
 <script>
+
+/* ================= language, theme & accent ================= */
+const STR={
+en:{
+"app.name":"Theory Gym",
+"set.title":"Settings","set.sub":"Language, colour theme and accent colour. Your choice is remembered on this device.",
+"set.lang":"Language","set.theme":"Theme","set.auto":"System","set.light":"Light","set.dark":"Dark","set.accent":"Accent colour","set.done":"Done","set.ref":"A4 reference","set.refHint":"Tuning reference for the built-in tones and the mic. Concert pitch is 440 Hz.","hint.task":"Play it on your instrument — the mic can listen as you go, or reveal the answer.",
+"home.sub":"Learn music theory by reading it, then play it.",
+"home.t":"Read theory","home.ts":"Short lessons on intervals, scales, triads, chords and modes.",
+"home.e":"Exercises","home.es":"Questions with the reason behind every answer.",
+"home.p":"Practical exercises","home.ps":"Categories of drills and things to play, with a mic that listens.",
+"nav.home":"Home","nav.theory":"Theory","nav.ex":"Exercises","nav.prac":"Practical exercises","nav.sections":"Sections","nav.categories":"Categories",
+"ex.title":"Exercises","ex.sub":"Pick a topic. Every question comes with the reason behind the answer.",
+"theory.topics":"Topics","theory.practise":"Practise this",
+"prac.title":"Practical exercises","prac.sub":"Play it, hear it, fix it. Pick a category, or let the mic listen while you play.",
+"prac.free":"Free play & tuner","prac.frees":"Play anything and see which note it is and how in tune it sits.","prac.advanced":"More advanced",
+"free.sub":"Play single notes on your instrument. The mic shows the note and how far from in tune it sits.",
+"btn.start":"Start listening","btn.stop":"Stop","btn.reveal":"Reveal","btn.another":"Another one","btn.next":"Next","btn.nextq":"Next question",
+"btn.back":"Categories","btn.play":"\u25b6 Play","btn.together":"Play together","btn.playscale":"Play scale","btn.hear":"Hear the notes",
+"tryfirst":"Try it on your instrument first","check":"Check yourself:","correct":"Correct.","notquite":"Not quite.","hands":"Hands-on \u00b7 not scored",
+"score":"{c}/{t} correct",
+"stat.session":"This session","stat.month":"Last 30 days","stat.since":"Since reset","stat.reset":"Reset","stat.sinceV":"Reset counter started {d}",
+"stat.nosave":"This browser blocks saving, so the 30-day and reset counters only last while this page is open.",
+"mic.nosupport":"This browser cannot reach the microphone here. Open the file in Chrome, Edge or Safari and allow access.",
+"mic.blocked":"Microphone access was blocked. Allow it in the browser, then press Start again.",
+"mic.listen":"Listening. Play a note.","mic.listenSeq":"Listening. Play the notes in order.",
+"mic.hear":"Listen to the interval, then press Start listening and play it back.",
+"mic.waiting":"waiting for a note","mic.pressstart":"press start","mic.intune":"in tune","mic.cents":" cents","mic.stopped":"stopped",
+"mic.wrong":"Heard <b>{n}</b>, but the next note is <b>{want}</b>. Try again.",
+"mic.done":"Every note was right and in tune. Nice.",
+"mic.done1":"Finished: one wrong note. Worth another pass.",
+"mic.donen":"Finished: {n} wrong notes. Worth another pass.",
+"mic.lower":"the lower note","mic.higher":"the higher note",
+"hint.scale":"One note at a time, going up. The mic ticks each note off as you play it.",
+"hint.triad":"Root, then the third, then the fifth.",
+"hint.ear":"Press \"Hear the notes\", then \"Start listening\", then play the two notes. Any octave is fine.",
+"hint.interval":"Two notes, one after the other. Any octave is fine.",
+"hint.prog":"Just the root note of each chord, one per beat.",
+"hint.mode":"Ascending. Compare it with the major scale on the same root."
+},
+es:{
+"app.name":"Theory Gym",
+"set.title":"Ajustes","set.sub":"Idioma, tema de color y color de acento. Tu elección se guarda en este dispositivo.",
+"set.lang":"Idioma","set.theme":"Tema","set.auto":"Sistema","set.light":"Claro","set.dark":"Oscuro","set.accent":"Color de acento","set.done":"Listo","set.ref":"Referencia LA4","set.refHint":"Afinación de referencia para los tonos y el micrófono. El tono de concierto es 440 Hz.","hint.task":"Tócalo en tu instrumento: el micrófono puede escuchar mientras tocas, o muestra la respuesta.",
+"home.sub":"Aprende teoría musical leyéndola y luego tocándola.",
+"home.t":"Leer teoría","home.ts":"Lecciones cortas sobre intervalos, escalas, tríadas, acordes y modos.",
+"home.e":"Ejercicios","home.es":"Preguntas con el porqué de cada respuesta.",
+"home.p":"Ejercicios prácticos","home.ps":"Categorías de ejercicios y cosas que tocar, con un micrófono que escucha.",
+"nav.home":"Inicio","nav.theory":"Teoría","nav.ex":"Ejercicios","nav.prac":"Ejercicios prácticos","nav.sections":"Secciones","nav.categories":"Categorías",
+"ex.title":"Ejercicios","ex.sub":"Elige un tema. Cada pregunta incluye el porqué de la respuesta.",
+"theory.topics":"Temas","theory.practise":"Practicar esto",
+"prac.title":"Ejercicios prácticos","prac.sub":"Tócalo, escúchalo, corrígelo. Elige una categoría o deja que el micrófono escuche mientras tocas.",
+"prac.free":"Juego libre y afinador","prac.frees":"Toca lo que quieras y mira qué nota es y cuánto se desvía.","prac.advanced":"Más avanzado",
+"free.sub":"Toca notas sueltas en tu instrumento. El micrófono muestra la nota y cuánto se desvía de la afinación.",
+"btn.start":"Empezar a escuchar","btn.stop":"Parar","btn.reveal":"Ver respuesta","btn.another":"Otra","btn.next":"Siguiente","btn.nextq":"Siguiente pregunta",
+"btn.back":"Categorías","btn.play":"\u25b6 Tocar","btn.together":"Tocar juntas","btn.playscale":"Tocar la escala","btn.hear":"Oír las notas",
+"tryfirst":"Inténtalo antes en tu instrumento","check":"Comprueba:","correct":"Correcto.","notquite":"Casi.","hands":"Práctica \u00b7 sin puntuación",
+"score":"{c}/{t} correctas",
+"stat.session":"Esta sesión","stat.month":"Últimos 30 días","stat.since":"Desde el reinicio","stat.reset":"Reiniciar","stat.sinceV":"Contador reiniciado el {d}",
+"stat.nosave":"Este navegador bloquea el guardado, así que los contadores de 30 días y del reinicio solo duran mientras la página está abierta.",
+"mic.nosupport":"Este navegador no puede acceder al micrófono aquí. Abre el archivo en Chrome, Edge o Safari y permite el acceso.",
+"mic.blocked":"Se bloqueó el acceso al micrófono. Permítelo en el navegador y vuelve a pulsar Empezar.",
+"mic.listen":"Escuchando. Toca una nota.","mic.listenSeq":"Escuchando. Toca las notas en orden.",
+"mic.hear":"Escucha el intervalo, luego pulsa Empezar a escuchar y tócalo de vuelta.",
+"mic.waiting":"esperando una nota","mic.pressstart":"pulsa empezar","mic.intune":"afinado","mic.cents":" cents","mic.stopped":"parado",
+"mic.wrong":"He oído <b>{n}</b>, pero la siguiente nota es <b>{want}</b>. Inténtalo otra vez.",
+"mic.done":"Todas las notas correctas y afinadas. Bien.",
+"mic.done1":"Terminado: una nota mal. Merece otra pasada.",
+"mic.donen":"Terminado: {n} notas mal. Merece otra pasada.",
+"mic.lower":"la nota grave","mic.higher":"la nota aguda",
+"hint.scale":"Una nota cada vez, subiendo. El micrófono va marcando cada nota que tocas.",
+"hint.triad":"Raíz, luego la tercera, luego la quinta.",
+"hint.ear":"Pulsa \"Oír las notas\", luego \"Empezar a escuchar\" y toca las dos notas. Cualquier octava vale.",
+"hint.interval":"Dos notas, una tras otra. Cualquier octava vale.",
+"hint.prog":"Solo la nota raíz de cada acorde, una por tiempo.",
+"hint.mode":"Ascendente. Compárala con la escala mayor sobre la misma raíz."
+},
+it:{
+"app.name":"Theory Gym",
+"set.title":"Impostazioni","set.sub":"Lingua, tema dei colori e colore d’accento. La scelta viene ricordata su questo dispositivo.",
+"set.lang":"Lingua","set.theme":"Tema","set.auto":"Sistema","set.light":"Chiaro","set.dark":"Scuro","set.accent":"Colore d’accento","set.done":"Fatto","set.ref":"Riferimento LA4","set.refHint":"Accordatura di riferimento per i toni e il microfono. Il diapason è 440 Hz.","hint.task":"Suonalo sul tuo strumento: il microfono può ascoltare mentre suoni, oppure mostra la risposta.",
+"home.sub":"Impara la teoria musicale leggendola e poi suonandola.",
+"home.t":"Leggi la teoria","home.ts":"Lezioni brevi su intervalli, scale, triadi, accordi e modi.",
+"home.e":"Esercizi","home.es":"Domande con il perché di ogni risposta.",
+"home.p":"Esercizi pratici","home.ps":"Categorie di esercizi e cose da suonare, con un microfono che ascolta.",
+"nav.home":"Home","nav.theory":"Teoria","nav.ex":"Esercizi","nav.prac":"Esercizi pratici","nav.sections":"Sezioni","nav.categories":"Categorie",
+"ex.title":"Esercizi","ex.sub":"Scegli un argomento. Ogni domanda ha il perché della risposta.",
+"theory.topics":"Argomenti","theory.practise":"Esercitati",
+"prac.title":"Esercizi pratici","prac.sub":"Suonalo, ascoltalo, correggilo. Scegli una categoria o lascia che il microfono ascolti mentre suoni.",
+"prac.free":"Suono libero e accordatore","prac.frees":"Suona quello che vuoi e vedi che nota è e quanto è intonata.","prac.advanced":"Più avanzato",
+"free.sub":"Suona note singole sul tuo strumento. Il microfono mostra la nota e quanto è fuori tono.",
+"btn.start":"Inizia ad ascoltare","btn.stop":"Ferma","btn.reveal":"Mostra risposta","btn.another":"Un’altra","btn.next":"Avanti","btn.nextq":"Domanda successiva",
+"btn.back":"Categorie","btn.play":"\u25b6 Suona","btn.together":"Suona insieme","btn.playscale":"Suona la scala","btn.hear":"Ascolta le note",
+"tryfirst":"Provalo prima sul tuo strumento","check":"Verifica:","correct":"Giusto.","notquite":"Non proprio.","hands":"Pratica \u00b7 senza punteggio",
+"score":"{c}/{t} corrette",
+"stat.session":"Questa sessione","stat.month":"Ultimi 30 giorni","stat.since":"Dal ripristino","stat.reset":"Azzera","stat.sinceV":"Contatore azzerato il {d}",
+"stat.nosave":"Questo browser blocca il salvataggio, quindi i contatori dei 30 giorni e del ripristino durano solo mentre la pagina è aperta.",
+"mic.nosupport":"Questo browser non riesce a usare il microfono. Apri il file in Chrome, Edge o Safari e consenti l’accesso.",
+"mic.blocked":"Accesso al microfono bloccato. Consentilo nel browser e premi di nuovo Inizia.",
+"mic.listen":"In ascolto. Suona una nota.","mic.listenSeq":"In ascolto. Suona le note in ordine.",
+"mic.hear":"Ascolta l’intervallo, poi premi Inizia ad ascoltare e suonalo.",
+"mic.waiting":"in attesa di una nota","mic.pressstart":"premi inizia","mic.intune":"intonata","mic.cents":" cent","mic.stopped":"fermo",
+"mic.wrong":"Ho sentito <b>{n}</b>, ma la nota successiva è <b>{want}</b>. Riprova.",
+"mic.done":"Tutte le note giuste e intonate. Bravo.",
+"mic.done1":"Finito: una nota sbagliata. Vale un altro giro.",
+"mic.donen":"Finito: {n} note sbagliate. Vale un altro giro.",
+"mic.lower":"la nota grave","mic.higher":"la nota acuta",
+"hint.scale":"Una nota per volta, salendo. Il microfono segna ogni nota che suoni.",
+"hint.triad":"Radice, poi la terza, poi la quinta.",
+"hint.ear":"Premi \"Ascolta le note\", poi \"Inizia ad ascoltare\" e suona le due note. Va bene qualsiasi ottava.",
+"hint.interval":"Due note, una dopo l’altra. Va bene qualsiasi ottava.",
+"hint.prog":"Solo la nota di radice di ogni accordo, una per battito.",
+"hint.mode":"Ascendente. Confrontala con la scala maggiore sulla stessa radice."
+},
+pt:{
+"app.name":"Theory Gym",
+"set.title":"Ajustes","set.sub":"Idioma, tema de cores e cor de destaque. A escolha fica salva neste aparelho.",
+"set.lang":"Idioma","set.theme":"Tema","set.auto":"Sistema","set.light":"Claro","set.dark":"Escuro","set.accent":"Cor de destaque","set.done":"Pronto","set.ref":"Referência LÁ 4","set.refHint":"Referência de afinação para os tons e o microfone. O diapasão é 440 Hz.","hint.task":"Toque no seu instrumento: o microfone pode escutar enquanto você toca, ou mostre a resposta.",
+"home.sub":"Aprenda teoria musical lendo e depois tocando.",
+"home.t":"Ler teoria","home.ts":"Lições curtas sobre intervalos, escalas, tríades, acordes e modos.",
+"home.e":"Exercícios","home.es":"Perguntas com o porquê de cada resposta.",
+"home.p":"Exercícios práticos","home.ps":"Categorias de exercícios e coisas para tocar, com um microfone que escuta.",
+"nav.home":"Início","nav.theory":"Teoria","nav.ex":"Exercícios","nav.prac":"Exercícios práticos","nav.sections":"Seções","nav.categories":"Categorias",
+"ex.title":"Exercícios","ex.sub":"Escolha um tema. Cada pergunta vem com o porquê da resposta.",
+"theory.topics":"Temas","theory.practise":"Praticar isto",
+"prac.title":"Exercícios práticos","prac.sub":"Toque, ouça, corrija. Escolha uma categoria ou deixe o microfone escutar enquanto você toca.",
+"prac.free":"Tocar livre e afinador","prac.frees":"Toque o que quiser e veja qual é a nota e quanto ela está fora do tom.","prac.advanced":"Mais avançado",
+"free.sub":"Toque notas soltas no seu instrumento. O microfone mostra a nota e o quanto ela está fora do tom.",
+"btn.start":"Começar a escutar","btn.stop":"Parar","btn.reveal":"Ver resposta","btn.another":"Outra","btn.next":"Próxima","btn.nextq":"Próxima pergunta",
+"btn.back":"Categorias","btn.play":"\u25b6 Tocar","btn.together":"Tocar juntas","btn.playscale":"Tocar a escala","btn.hear":"Ouvir as notas",
+"tryfirst":"Tente antes no seu instrumento","check":"Confira:","correct":"Certo.","notquite":"Quase.","hands":"Prática \u00b7 sem pontuação",
+"score":"{c}/{t} certas",
+"stat.session":"Esta sessão","stat.month":"Últimos 30 dias","stat.since":"Desde o reinício","stat.reset":"Zerar","stat.sinceV":"Contador zerado em {d}",
+"stat.nosave":"Este navegador bloqueia o salvamento, então os contadores de 30 dias e do reinício só duram enquanto a página estiver aberta.",
+"mic.nosupport":"Este navegador não consegue usar o microfone. Abra o arquivo no Chrome, Edge ou Safari e permita o acesso.",
+"mic.blocked":"O acesso ao microfone foi bloqueado. Permita no navegador e toque em Começar de novo.",
+"mic.listen":"Escutando. Toque uma nota.","mic.listenSeq":"Escutando. Toque as notas em ordem.",
+"mic.hear":"Ouça o intervalo, depois toque em Começar a escutar e toque-o de volta.",
+"mic.waiting":"esperando uma nota","mic.pressstart":"toque em começar","mic.intune":"afinada","mic.cents":" cents","mic.stopped":"parado",
+"mic.wrong":"Ouvi <b>{n}</b>, mas a próxima nota é <b>{want}</b>. Tente de novo.",
+"mic.done":"Todas as notas certas e afinadas. Boa.",
+"mic.done1":"Fim: uma nota errada. Vale outra passada.",
+"mic.donen":"Fim: {n} notas erradas. Vale outra passada.",
+"mic.lower":"a nota grave","mic.higher":"a nota aguda",
+"hint.scale":"Uma nota por vez, subindo. O microfone marca cada nota que você toca.",
+"hint.triad":"Raiz, depois a terça, depois a quinta.",
+"hint.ear":"Toque em \"Ouvir as notas\", depois em \"Começar a escutar\" e toque as duas notas. Qualquer oitava serve.",
+"hint.interval":"Duas notas, uma depois da outra. Qualquer oitava serve.",
+"hint.prog":"Só a nota raiz de cada acorde, uma por tempo.",
+"hint.mode":"Ascendente. Compare com a escala maior na mesma raiz."
+},
+fr:{
+"app.name":"Theory Gym",
+"set.title":"Réglages","set.sub":"Langue, thème de couleurs et couleur d’accent. Le choix est mémorisé sur cet appareil.",
+"set.lang":"Langue","set.theme":"Thème","set.auto":"Système","set.light":"Clair","set.dark":"Sombre","set.accent":"Couleur d’accent","set.done":"Terminé","set.ref":"Référence LA 4","set.refHint":"Référence d’accord pour les sons et le micro. Le diapason est 440 Hz.","hint.task":"Joue-le sur ton instrument : le micro peut écouter pendant que tu joues, ou affiche la réponse.",
+"home.sub":"Apprends la théorie musicale en la lisant, puis en la jouant.",
+"home.t":"Lire la théorie","home.ts":"Leçons courtes sur les intervalles, les gammes, les triades, les accords et les modes.",
+"home.e":"Exercices","home.es":"Des questions avec la raison de chaque réponse.",
+"home.p":"Exercices pratiques","home.ps":"Des catégories d’exercices et de choses à jouer, avec un micro qui écoute.",
+"nav.home":"Accueil","nav.theory":"Théorie","nav.ex":"Exercices","nav.prac":"Exercices pratiques","nav.sections":"Sections","nav.categories":"Catégories",
+"ex.title":"Exercices","ex.sub":"Choisis un thème. Chaque question vient avec la raison de la réponse.",
+"theory.topics":"Thèmes","theory.practise":"S’entraîner",
+"prac.title":"Exercices pratiques","prac.sub":"Joue-le, écoute-le, corrige-le. Choisis une catégorie, ou laisse le micro écouter pendant que tu joues.",
+"prac.free":"Jeu libre et accordeur","prac.frees":"Joue ce que tu veux et vois quelle note c’est et si elle est juste.","prac.advanced":"Plus avancé",
+"free.sub":"Joue des notes seules sur ton instrument. Le micro affiche la note et son écart d’accord.",
+"btn.start":"Commencer à écouter","btn.stop":"Arrêter","btn.reveal":"Voir la réponse","btn.another":"Une autre","btn.next":"Suivant","btn.nextq":"Question suivante",
+"btn.back":"Catégories","btn.play":"\u25b6 Jouer","btn.together":"Jouer ensemble","btn.playscale":"Jouer la gamme","btn.hear":"Entendre les notes",
+"tryfirst":"Essaie d’abord sur ton instrument","check":"Vérifie :","correct":"Juste.","notquite":"Pas tout à fait.","hands":"Pratique \u00b7 non noté",
+"score":"{c}/{t} justes",
+"stat.session":"Cette session","stat.month":"30 derniers jours","stat.since":"Depuis la remise à zéro","stat.reset":"Réinitialiser","stat.sinceV":"Compteur remis à zéro le {d}",
+"stat.nosave":"Ce navigateur bloque l’enregistrement, donc les compteurs 30 jours et remise à zéro ne durent que tant que la page est ouverte.",
+"mic.nosupport":"Ce navigateur ne peut pas accéder au micro. Ouvre le fichier dans Chrome, Edge ou Safari et autorise l’accès.",
+"mic.blocked":"L’accès au micro a été bloqué. Autorise-le dans le navigateur, puis appuie de nouveau sur Commencer.",
+"mic.listen":"J’écoute. Joue une note.","mic.listenSeq":"J’écoute. Joue les notes dans l’ordre.",
+"mic.hear":"Écoute l’intervalle, puis appuie sur Commencer à écouter et rejoue-le.",
+"mic.waiting":"en attente d’une note","mic.pressstart":"appuie sur commencer","mic.intune":"juste","mic.cents":" cents","mic.stopped":"arrêté",
+"mic.wrong":"J’ai entendu <b>{n}</b>, mais la note suivante est <b>{want}</b>. Réessaie.",
+"mic.done":"Toutes les notes étaient justes et bien accordées. Bravo.",
+"mic.done1":"Terminé : une note fausse. Ça vaut un autre passage.",
+"mic.donen":"Terminé : {n} notes fausses. Ça vaut un autre passage.",
+"mic.lower":"la note grave","mic.higher":"la note aiguë",
+"hint.scale":"Une note à la fois, en montant. Le micro coche chaque note que tu joues.",
+"hint.triad":"La fondamentale, puis la tierce, puis la quinte.",
+"hint.ear":"Appuie sur \"Entendre les notes\", puis sur \"Commencer à écouter\" et joue les deux notes. N’importe quelle octave fait l’affaire.",
+"hint.interval":"Deux notes, l’une après l’autre. N’importe quelle octave fait l’affaire.",
+"hint.prog":"Juste la fondamentale de chaque accord, une par temps.",
+"hint.mode":"En montant. Compare-la avec la gamme majeure sur la même fondamentale."
+},
+de:{
+"app.name":"Theory Gym",
+"set.title":"Einstellungen","set.sub":"Sprache, Farbthema und Akzentfarbe. Die Auswahl wird auf diesem Gerät gespeichert.",
+"set.lang":"Sprache","set.theme":"Thema","set.auto":"System","set.light":"Hell","set.dark":"Dunkel","set.accent":"Akzentfarbe","set.done":"Fertig","set.ref":"Kammerton A4","set.refHint":"Stimmreferenz für die Töne und das Mikrofon. Der Kammerton ist 440 Hz.","hint.task":"Spiele es auf deinem Instrument – das Mikrofon kann dabei zuhören, oder zeig die Antwort.",
+"home.sub":"Lerne Musiktheorie, indem du sie liest und dann spielst.",
+"home.t":"Theorie lesen","home.ts":"Kurze Lektionen zu Intervallen, Tonleitern, Dreiklängen, Akkorden und Modi.",
+"home.e":"Übungen","home.es":"Fragen mit der Begründung für jede Antwort.",
+"home.p":"Praktische Übungen","home.ps":"Kategorien von Übungen und Spielaufgaben, mit einem Mikrofon, das zuhört.",
+"nav.home":"Start","nav.theory":"Theorie","nav.ex":"Übungen","nav.prac":"Praktische Übungen","nav.sections":"Abschnitte","nav.categories":"Kategorien",
+"ex.title":"Übungen","ex.sub":"Wähle ein Thema. Zu jeder Frage gibt es die Begründung der Antwort.",
+"theory.topics":"Themen","theory.practise":"Das üben",
+"prac.title":"Praktische Übungen","prac.sub":"Spielen, hören, korrigieren. Wähle eine Kategorie oder lass das Mikrofon mithören.",
+"prac.free":"Freies Spiel & Stimmgerät","prac.frees":"Spiel einfach drauflos und sieh, welcher Ton es ist und wie sauber er klingt.","prac.advanced":"Fortgeschritten",
+"free.sub":"Spiele einzelne Töne auf deinem Instrument. Das Mikrofon zeigt den Ton und die Abweichung.",
+"btn.start":"Zuhören starten","btn.stop":"Stopp","btn.reveal":"Antwort zeigen","btn.another":"Noch eine","btn.next":"Weiter","btn.nextq":"Nächste Frage",
+"btn.back":"Kategorien","btn.play":"\u25b6 Abspielen","btn.together":"Zusammen abspielen","btn.playscale":"Tonleiter abspielen","btn.hear":"Töne anhören",
+"tryfirst":"Versuch es zuerst auf deinem Instrument","check":"Prüfe:","correct":"Richtig.","notquite":"Nicht ganz.","hands":"Praxis \u00b7 ohne Wertung",
+"score":"{c}/{t} richtig",
+"stat.session":"Diese Sitzung","stat.month":"Letzte 30 Tage","stat.since":"Seit Reset","stat.reset":"Zurücksetzen","stat.sinceV":"Zähler zurückgesetzt am {d}",
+"stat.nosave":"Dieser Browser blockiert das Speichern, daher gelten die 30-Tage- und Reset-Zähler nur, solange die Seite offen ist.",
+"mic.nosupport":"Dieser Browser kann nicht auf das Mikrofon zugreifen. Öffne die Datei in Chrome, Edge oder Safari und erlaube den Zugriff.",
+"mic.blocked":"Der Mikrofonzugriff wurde blockiert. Erlaube ihn im Browser und drücke erneut auf Starten.",
+"mic.listen":"Ich höre zu. Spiele einen Ton.","mic.listenSeq":"Ich höre zu. Spiele die Töne der Reihe nach.",
+"mic.hear":"Hör dir das Intervall an, drücke dann auf Zuhören starten und spiele es nach.",
+"mic.waiting":"warte auf einen Ton","mic.pressstart":"Start drücken","mic.intune":"sauber","mic.cents":" Cent","mic.stopped":"gestoppt",
+"mic.wrong":"Ich habe <b>{n}</b> gehört, aber der nächste Ton ist <b>{want}</b>. Versuch es nochmal.",
+"mic.done":"Alle Töne richtig und sauber. Sehr gut.",
+"mic.done1":"Fertig: ein falscher Ton. Eine zweite Runde lohnt sich.",
+"mic.donen":"Fertig: {n} falsche Töne. Eine zweite Runde lohnt sich.",
+"mic.lower":"der tiefere Ton","mic.higher":"der höhere Ton",
+"hint.scale":"Ein Ton nach dem anderen, aufwärts. Das Mikrofon hakt jeden gespielten Ton ab.",
+"hint.triad":"Grundton, dann die Terz, dann die Quinte.",
+"hint.ear":"Drücke \"Töne anhören\", dann \"Zuhören starten\" und spiele die zwei Töne. Jede Oktave ist in Ordnung.",
+"hint.interval":"Zwei Töne, einer nach dem anderen. Jede Oktave ist in Ordnung.",
+"hint.prog":"Nur der Grundton jedes Akkords, einer pro Schlag.",
+"hint.mode":"Aufwärts. Vergleiche sie mit der Dur-Tonleiter auf demselben Grundton."
+}
+};
+const LANGS=[["en","English"],["es","Español"],["it","Italiano"],["pt","Português"],["fr","Français"],["de","Deutsch"]].filter(function(l){return !!STR[l[0]]});
+const ACC={orange:["#c2410c","#fb923c"],blue:["#1d4ed8","#60a5fa"],green:["#15803d","#4ade80"],purple:["#7e22ce","#c084fc"],rose:["#be123c","#fb7185"],teal:["#0f766e","#2dd4bf"]};
+const REFMIN=415,REFMAX=466;
+function refHz(){return(typeof SET==="object"&&SET&&typeof SET.refA==="number")?SET.refA:440}
+const SET=(function(){try{const s=JSON.parse(localStorage.getItem("theorygym.set")||"null");if(s&&typeof s==="object")return{lang:STR[s.lang]?s.lang:"en",theme:["auto","light","dark"].indexOf(s.theme)>=0?s.theme:"auto",acc:ACC[s.acc]?s.acc:"orange",refA:(typeof s.refA==="number"&&isFinite(s.refA)&&s.refA>=REFMIN&&s.refA<=REFMAX)?s.refA:440}}catch(e){}return{lang:"en",theme:"auto",acc:"orange",refA:440}})();
+function T(k,p){const d=STR[SET.lang]||{};let s=d[k]!==undefined?d[k]:STR.en[k];if(s===undefined)return k;if(p)for(const x in p)s=s.split("{"+x+"}").join(p[x]);return s}
+const HAS=k=>((STR[SET.lang]||{})[k]!==undefined)||(STR.en[k]!==undefined);
+const mn=k=>HAS("mod."+k)?T("mod."+k):((MODS[k]&&MODS[k].name)||k);
+const cn=k=>HAS("cat."+k)?T("cat."+k):((PRAC[k]&&PRAC[k].n)||k);
+const cs=k=>HAS("cat."+k+".s")?T("cat."+k+".s"):((PRAC[k]&&PRAC[k].sub)||"");
+const blurb=k=>HAS("blurb."+k)?T("blurb."+k):BLURB[k];
+function saveSet(){try{localStorage.setItem("theorygym.set",JSON.stringify(SET))}catch(e){}}
+function darkNow(){return SET.theme=="dark"||(SET.theme=="auto"&&typeof matchMedia=="function"&&matchMedia("(prefers-color-scheme:dark)").matches)}
+function applySet(){const r=document.documentElement;if(r){if(SET.theme=="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",SET.theme);r.lang=SET.lang;const a=ACC[SET.acc]||ACC.orange;r.style.setProperty("--acc",darkNow()?a[1]:a[0]);}
+[["tg","nav.sections"],["hm","nav.home"],["se","set.title"]].forEach(function(x){const e=$&&$(x[0]);if(e&&e.setAttribute)e.setAttribute("aria-label",T(x[1]))})}
+function titles(){const t=$("ttl");if(t)t.textContent=view=="home"?T("app.name"):view=="theory"?T("nav.theory"):view=="prac"?T("nav.prac"):(view=="ex"&&!exPicked?T("nav.ex"):mn(cur))}
+function drawHome(){const h=$("home");if(!h)return;h.innerHTML='<button class="gear" onclick="openSet()" aria-label="'+T("set.title")+'">\u2699</button><div class="hero"><div class="logo">\ud83c\udfbc</div><h2 class="ht">'+T("app.name")+'</h2><p class="hs">'+T("home.sub")+'</p></div>'
++'<button class="hcard" onclick="show(&#39;theory&#39;)"><b><span class="ic">\ud83d\udcd6</span>'+T("home.t")+'</b><span>'+T("home.ts")+'</span></button>'
++'<button class="hcard" onclick="show(&#39;ex&#39;)"><b><span class="ic">\ud83c\udfaf</span>'+T("home.e")+'</b><span>'+T("home.es")+'</span></button>'
++'<button class="hcard" onclick="startPractice()"><b><span class="ic">\ud83c\udfb8</span>'+T("home.p")+'</b><span>'+T("home.ps")+'</span></button>'}
+function openSet(){drawSet();const e=$("setp");if(e)e.className="on"}
+function closeSet(){const e=$("setp");if(e)e.className=""}
+function setLang(l){if(!STR[l])return;SET.lang=l;saveSet();relabel()}
+function setTheme(t){SET.theme=t;saveSet();applySet();drawSet()}
+function setAcc(a){SET.acc=a;saveSet();applySet();drawSet()}
+function setRef(v,src){let n=parseFloat(v);if(!isFinite(n))n=440;n=Math.max(REFMIN,Math.min(REFMAX,n));n=Math.round(n*10)/10;SET.refA=n;saveSet();const r=$("refRng"),t=$("refNum");if(r&&src!=="range")r.value=n;if(t&&src!=="number")t.value=n}
+function relabel(){applySet();drawHome();titles();
+ const pt=$("pracT"),ps=$("pracS");if(pt)pt.innerHTML=T("prac.title");if(ps)ps.innerHTML=T("prac.sub");
+ tabs();if(view=="theory")drawTheory();if(view=="ex")drawEx();if(view=="ex"&&exPicked)draw();if(view=="prac")drawPrac();renderStats();drawSet()}
+function drawSet(){const b=$("setbox");if(!b)return;const d=darkNow()?1:0;
+ b.innerHTML='<h2>'+T("set.title")+'</h2><p class="hs">'+T("set.sub")+'</p>'
+ +'<div class="setrow"><b>'+T("set.lang")+'</b><div class="seg">'+LANGS.map(function(l){return '<button class="'+(l[0]==SET.lang?"on":"")+'" onclick="setLang(&#39;'+l[0]+'&#39;)">'+l[1]+'</button>'}).join("")+'</div></div>'
+ +'<div class="setrow"><b>'+T("set.theme")+'</b><div class="seg">'+[["auto","set.auto"],["light","set.light"],["dark","set.dark"]].map(function(t){return '<button class="'+(t[0]==SET.theme?"on":"")+'" onclick="setTheme(&#39;'+t[0]+'&#39;)">'+T(t[1])+'</button>'}).join("")+'</div></div>'
+ +'<div class="setrow"><b>'+T("set.accent")+'</b><div class="seg">'+Object.keys(ACC).map(function(k){return '<button class="sw'+(k==SET.acc?" on":"")+'" style="background:'+ACC[k][d]+'" onclick="setAcc(&#39;'+k+'&#39;)" aria-label="'+k+'"></button>'}).join("")+'</div></div>'
+ +'<div class="setrow"><b>'+T("set.ref")+'</b><div class="tune"><input id="refRng" type="range" min="'+REFMIN+'" max="'+REFMAX+'" step="1" value="'+SET.refA+'" oninput="setRef(this.value,&#39;range&#39;)"><input id="refNum" type="number" min="'+REFMIN+'" max="'+REFMAX+'" step="0.1" value="'+SET.refA+'" onchange="setRef(this.value,&#39;number&#39;)"><span class="hz">Hz</span></div><p class="tunehint">'+T("set.refHint")+'</p></div>'
+ +'<div class="row"><button class="btn" onclick="closeSet()">'+T("set.done")+'</button></div>'}
+if(typeof matchMedia=="function"&&matchMedia("(prefers-color-scheme:dark)").addEventListener)matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){applySet();drawSet()});
 const N=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const BASE={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 const pc=n=>((BASE[n[0]]+(n[1]=='#'?1:n[1]=='b'?-1:0))%12+12)%12;
@@ -142,7 +426,7 @@ const shuf=a=>a.map(x=>[Math.random(),x]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 const ord=n=>n+(['th','st','nd','rd'][n%10>3||(n>10&&n<14)?0:n%10]);
 
 let ac;
-function tone(m,t,d){ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=440*Math.pow(2,(m-69)/12);const s=ac.currentTime+t;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.3,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(ac.destination);o.start(s);o.stop(s+d+.05)}
+function tone(m,t,d){ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=refHz()*Math.pow(2,(m-69)/12);const s=ac.currentTime+t;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.3,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(ac.destination);o.start(s);o.stop(s+d+.05)}
 const play=(a,b,together)=>{if(ac&&ac.state=='suspended')ac.resume();tone(a,0,1.2);tone(b,together?0:.8,1.2)};
 
 const MODS={
@@ -264,17 +548,17 @@ const TASKS=[
  ()=>({task:true,q:'Loop four bars over a Dm7 chord using D Dorian, landing on the chord tones.',reveal:'D Dorian = D E F G A B C. Chord tones of Dm7 are D F A C, so aim for those on the strong beats.'})
 ];
 function micScale(m){const k=R(Object.keys(m?MIN:SC)),sc=(m?MIN:SC)[k].split(' '),iv=m?[0,2,3,5,7,8,10,12]:[0,2,4,5,7,9,11,12],base=48+pc(k);
- return{mic:true,q:'Play the <b>'+k+' '+MN[m]+'</b> scale ascending.',seq:iv.map(x=>base+x),labels:sc.concat(sc[0]),hint:'One note at a time, going up. The mic ticks each note off as you play it.'}}
+ return{mic:true,q:'Play the <b>'+k+' '+MN[m]+'</b> scale ascending.',seq:iv.map(x=>base+x),labels:sc.concat(sc[0]),hint:T('hint.scale')}}
 function mScale(){return micScale(Math.random()<.5?0:1)}
 function mTriad(){const r=Math.floor(Math.random()*12),q=R(Object.keys(TRI));
- return{mic:true,q:'Play the <b>'+N[r]+' '+q+'</b> triad: root, third, fifth.',seq:TRI[q].map(x=>48+r+x),labels:TRI[q].map(x=>N[(r+x)%12]),hint:'Root, then the third, then the fifth.'}}
+ return{mic:true,q:'Play the <b>'+N[r]+' '+q+'</b> triad: root, third, fifth.',seq:TRI[q].map(x=>48+r+x),labels:TRI[q].map(x=>N[(r+x)%12]),hint:T('hint.triad')}}
 function mInterval(){const ear=Math.random()<.4,a=52+Math.floor(Math.random()*12),s=1+Math.floor(Math.random()*12),down=!ear&&Math.random()<.35,d=down?-1:1;
- if(ear)return{mic:true,noChips:true,replay:'Hear the notes',strict:true,seq:[a,a+s],labels:['the lower note','the higher note'],q:'Listen: the app plays two notes. Play them back in that order on your instrument.',hint:'Press "Hear the notes", then "Start listening", then play the two notes. Any octave is fine.',doneMsg:'That was a <b>'+IV[s]+'</b> ('+s+' semitone'+(s>1?'s':'')+'): '+N[a%12]+' up to '+N[(a+s)%12]+'. '+SONG[s]+'.'};
- return{mic:true,strict:true,seq:[a,a+d*s],labels:[N[a%12],N[((a+d*s)%12+12)%12]],q:'Play a <b>'+IV[s]+'</b> '+(down?'down':'up')+' from <b>'+N[a%12]+'</b>.',hint:'Two notes, one after the other. Any octave is fine.',doneMsg:'<b>'+N[a%12]+'</b> '+(down?'down':'up')+' a '+IV[s]+' lands on <b>'+N[((a+d*s)%12+12)%12]+'</b>.'}}
+ if(ear)return{mic:true,noChips:true,replay:'btn.hear',strict:true,seq:[a,a+s],labels:['mic.lower','mic.higher'],q:'Listen: the app plays two notes. Play them back in that order on your instrument.',hint:T('hint.ear'),doneMsg:'That was a <b>'+IV[s]+'</b> ('+s+' semitone'+(s>1?'s':'')+'): '+N[a%12]+' up to '+N[(a+s)%12]+'. '+SONG[s]+'.'};
+ return{mic:true,strict:true,seq:[a,a+d*s],labels:[N[a%12],N[((a+d*s)%12+12)%12]],q:'Play a <b>'+IV[s]+'</b> '+(down?'down':'up')+' from <b>'+N[a%12]+'</b>.',hint:T('hint.interval'),doneMsg:'<b>'+N[a%12]+'</b> '+(down?'down':'up')+' a '+IV[s]+' lands on <b>'+N[((a+d*s)%12+12)%12]+'</b>.'}}
 function mProg(){const k=R(Object.keys(SC)),sc=SC[k].split(' '),deg=[0,3,4,5],base=48+pc(k);
- return{mic:true,q:'Play the chord roots of <b>I - IV - V - vi</b> in <b>'+k+' major</b>.',seq:deg.map(d=>base+((pc(sc[d])-pc(k))+12)%12),labels:deg.map(d=>sc[d]+' ('+ROM[d]+')'),hint:'Just the root note of each chord, one per beat.'}}
+ return{mic:true,q:'Play the chord roots of <b>I - IV - V - vi</b> in <b>'+k+' major</b>.',seq:deg.map(d=>base+((pc(sc[d])-pc(k))+12)%12),labels:deg.map(d=>sc[d]+' ('+ROM[d]+')'),hint:T('hint.prog')}}
 function mMode(){const p=mpick(),M=MODES[p.d],base=48+pc(p.root);
- return{mic:true,q:'Play <b>'+p.root+' '+M.n+'</b> starting on '+p.root+'.',seq:M.iv.map(x=>base+x),labels:p.notes,hint:'Ascending. Compare it with the major scale on the same root.'}}
+ return{mic:true,q:'Play <b>'+p.root+' '+M.n+'</b> starting on '+p.root+'.',seq:M.iv.map(x=>base+x),labels:p.notes,hint:T('hint.mode')}}
 const PRAC={
  fretboard:{n:'Fretboard notes',ic:'🎸',sub:'Name any note, find any root.',gen(){return R([PRAQ[0],PRAQ[1],TASKS[4]])()}},
  scales:{n:'Scales',ic:'🎼',sub:'Spell them, then play them.',gen(){return R([MODS.keys.gen,TASKS[0],TASKS[5],mScale])()}},
@@ -323,9 +607,9 @@ if(v=='ex')drawEx();
 if(v=='theory')drawTheory();
 if(v=='prac')drawPrac();
 tabs();
-const t=$('ttl');if(t)t.textContent=v=='home'?'Theory Gym':v=='theory'?'Theory':v=='prac'?'Practical exercises':(v=='ex'&&!exPicked?'Exercises':MODS[cur].name);
+titles();
 window.scrollTo(0,0)}
-function drawTheory(){$('theory').innerHTML=tp?'<button class="btn alt" onclick="tp=null;drawTheory()">\u2190 Topics</button><div class="card lesson" style="margin-top:14px">'+MODS[tp].lesson+THEORY[tp]+'</div><div class="row"><button class="btn" onclick="practice(\''+tp+'\')">Practise this</button></div>':'<h2 class="ht">Theory</h2>'+Object.keys(MODS).map(k=>'<button class="tcard" onclick="tp=\''+k+'\';drawTheory();window.scrollTo(0,0)"><b>'+MODS[k].name+'</b><span>'+BLURB[k]+'</span></button>').join('')}
+function drawTheory(){$('theory').innerHTML=tp?'<button class="btn alt" onclick="tp=null;drawTheory()">\u2190 '+T('theory.topics')+'</button><div class="card lesson" style="margin-top:14px">'+MODS[tp].lesson+THEORY[tp]+'</div><div class="row"><button class="btn" onclick="practice(\''+tp+'\')">'+T('theory.practise')+'</button></div>':'<h2 class="ht">'+T('nav.theory')+'</h2>'+Object.keys(MODS).map(k=>'<button class="tcard" onclick="tp=\''+k+'\';drawTheory();window.scrollTo(0,0)"><b>'+mn(k)+'</b><span>'+blurb(k)+'</span></button>').join('')}
 function practice(k){show('ex');go(k)}
 function startPractice(){show('prac')}
 /* ===== practical exercises screen ===== */
@@ -333,7 +617,7 @@ let pcat=null,pfree=false,pq=null,pdone=false,pst={c:0,t:0};
 function drawPrac(){const cats=$('pracCats'),run=$('pracRun');if(!cats||!run)return;document.body.classList.toggle('navon',!!(pcat||pfree));tabs();
  if(pcat||pfree){cats.style.display='none';run.style.display=''}
  else{cats.style.display='';run.style.display='none';
-  cats.innerHTML='<button class="pcard" onclick="openFree()"><b><span class="ic">🎤</span>Free play &amp; tuner</b><span>Play anything and see which note it is and how in tune it sits.</span></button>'+Object.keys(PRAC).map(k=>{const c=PRAC[k];return'<button class="pcard" onclick="openCat(\''+k+'\')"><b><span class="ic">'+c.ic+'</span>'+c.n+'</b><span>'+c.sub+'</span>'+(c.note?'<em class="adv">'+c.note+'</em>':'')+'</button>'}).join('');return}
+  cats.innerHTML='<button class="pcard" onclick="openFree()"><b><span class="ic">🎤</span>'+T('prac.free')+'</b><span>'+T('prac.frees')+'</span></button>'+Object.keys(PRAC).map(k=>{const c=PRAC[k];return'<button class="pcard" onclick="openCat(\''+k+'\')"><b><span class="ic">'+c.ic+'</span>'+cn(k)+'</b><span>'+cs(k)+'</span>'+(c.note?'<em class="adv">'+T('prac.advanced')+'</em>':'')+'</button>'}).join('');return}
  if(pfree)renderFree();else renderPrac()}
 function openCat(k){stopMic();pcat=k;pfree=false;pdone=false;pst={c:0,t:0};pq=PRAC[k].gen();if(innerWidth<900)document.body.classList.remove('open');drawPrac()}
 function openFree(){stopMic();pcat=null;pfree=true;if(innerWidth<900)document.body.classList.remove('open');drawPrac()}
@@ -342,27 +626,28 @@ function nextPrac(){stopMic();pdone=false;pq=PRAC[pcat].gen();renderPrac()}
 function revealPrac(){pdone=true;renderPrac()}
 function pickPrac(i){if(pdone)return;pdone=pq.opts[i];pst.t++;if(pdone==pq.ans)pst.c++;renderPrac()}
 function renderPrac(){const c=PRAC[pcat];let body='';const nx=(pdone&&pq.neck)?neckHtml(pq.neck):'';
- if(pq.task){body='<p class="q">'+pq.q+'</p>'+(pdone?('<div class="fb ok"><b>Check yourself:</b> '+pq.reveal+'</div>'+nx):'<div class="row"><button class="btn" onclick="revealPrac()">Reveal</button><span class="stat">Try it on your instrument first</span></div>')}
- else if(pq.mic){body='<p class="q">'+pq.q+'</p><p class="hs">'+(pq.hint||'')+'</p>'+(pq.noChips?'':'<div class="chips" id="mChips">'+pq.labels.map((l,i)=>'<span class="chip" data-i="'+i+'">'+l+'</span>').join('')+'</div>')+'<div class="micbox"><div class="micnote" id="mNote">—</div><div class="miccents" id="mCents">press start</div><div class="micbar"><span id="mNeedle"></span></div></div><div class="row"><button class="btn" onclick="micStartSeq()">Start listening</button>'+(pq.replay?'<button class="btn alt" onclick="hearPrac()">'+pq.replay+'</button>':'')+'<button class="btn alt" onclick="stopMic()">Stop</button><span class="stat" id="mStat">0 / '+pq.seq.length+'</span></div><p class="micro" id="mMsg"></p>'}
- else{body='<p class="q">'+pq.q+'</p><div class="opts'+(pq.wide?' w1':'')+'">'+pq.opts.map((o,i)=>'<button class="'+(pdone?(o==pq.ans?'ok':(o==pdone?'no':'')):'')+'" onclick="'+(pdone?'':'pickPrac('+i+')')+'">'+o+(pdone&&pq.labels?'<br><small>'+pq.labels[o]+'</small>':'')+'</button>').join('')+'</div>'+(pdone?'<div class="fb '+(pdone==pq.ans?'ok':'no')+'"><b>'+(pdone==pq.ans?'Correct.':'Not quite.')+'</b> '+pq.why+(pq.extra?'<div style="margin-top:8px">'+pq.extra+'</div>':'')+'</div>':'')+nx}
- $('pracRun').innerHTML='<button class="btn alt" onclick="closeCat()">\u2190 Categories</button><h2 class="ht">'+c.n+'</h2>'+body+'<div class="row"><button class="btn" onclick="nextPrac()">Another one</button><span class="stat">'+pst.c+'/'+pst.t+' correct</span></div>'}
-function renderFree(){$('pracRun').innerHTML='<button class="btn alt" onclick="closeCat()">\u2190 Categories</button><h2 class="ht">Free play &amp; tuner</h2><p class="hs">Play single notes on your instrument. The mic shows the note and how far from in tune it sits.</p><div class="micbox"><div class="micnote" id="mNote">—</div><div class="miccents" id="mCents">press start</div><div class="micbar"><span id="mNeedle"></span></div></div><div class="row"><button class="btn" onclick="micFree()">Start listening</button><button class="btn alt" onclick="stopMic()">Stop</button></div><p class="micro" id="mMsg"></p>'}
+ if(pq.task){body='<p class="q">'+pq.q+'</p><p class="hs">'+T('hint.task')+'</p>'+micFreeBox()+(pdone?('<div class="fb ok"><b>'+T('check')+'</b> '+pq.reveal+'</div>'+nx):'<div class="row"><button class="btn" onclick="revealPrac()">'+T('btn.reveal')+'</button><span class="stat">'+T('tryfirst')+'</span></div>')}
+ else if(pq.mic){body='<p class="q">'+pq.q+'</p><p class="hs">'+(pq.hint||'')+'</p>'+(pq.noChips?'':'<div class="chips" id="mChips">'+pq.labels.map((l,i)=>'<span class="chip" data-i="'+i+'">'+T(l)+'</span>').join('')+'</div>')+'<div class="micbox"><div class="micnote" id="mNote">—</div><div class="miccents" id="mCents">'+T('mic.pressstart')+'</div><div class="micbar"><span id="mNeedle"></span></div></div><div class="row"><button class="btn" onclick="micStartSeq()">'+T('btn.start')+'</button>'+(pq.replay?'<button class="btn alt" onclick="hearPrac()">'+T(pq.replay)+'</button>':'')+'<button class="btn alt" onclick="stopMic()">'+T('btn.stop')+'</button><span class="stat" id="mStat">'+T('score',{c:0,t:pq.seq.length})+'</span></div><p class="micro" id="mMsg"></p>'}
+ else{body='<p class="q">'+pq.q+'</p><div class="opts'+(pq.wide?' w1':'')+'">'+pq.opts.map((o,i)=>'<button class="'+(pdone?(o==pq.ans?'ok':(o==pdone?'no':'')):'')+'" onclick="'+(pdone?'':'pickPrac('+i+')')+'">'+o+(pdone&&pq.labels?'<br><small>'+pq.labels[o]+'</small>':'')+'</button>').join('')+'</div>'+(pdone?'<div class="fb '+(pdone==pq.ans?'ok':'no')+'"><b>'+(pdone==pq.ans?T('correct'):T('notquite'))+'</b> '+pq.why+(pq.extra?'<div style="margin-top:8px">'+pq.extra+'</div>':'')+'</div>':'')+nx}
+ $('pracRun').innerHTML='<button class="btn alt" onclick="closeCat()">\u2190 '+T('btn.back')+'</button><h2 class="ht">'+c.n+'</h2>'+body+'<div class="row"><button class="btn" onclick="nextPrac()">'+T('btn.another')+'</button><span class="stat">'+T('score',{c:pst.c,t:pst.t})+'</span></div>'}
+function micFreeBox(){return '<div class="micbox"><div class="micnote" id="mNote">—</div><div class="miccents" id="mCents">'+T('mic.pressstart')+'</div><div class="micbar"><span id="mNeedle"></span></div></div><div class="row"><button class="btn" onclick="micFree()">'+T('btn.start')+'</button><button class="btn alt" onclick="stopMic()">'+T('btn.stop')+'</button></div><p class="micro" id="mMsg"></p>'}
+function renderFree(){$('pracRun').innerHTML='<button class="btn alt" onclick="closeCat()">\u2190 '+T('btn.back')+'</button><h2 class="ht">'+T('prac.free')+'</h2><p class="hs">'+T('free.sub')+'</p>'+micFreeBox()}
 /* ===== microphone listening ===== */
 let mCtx=null,mStream=null,mAn=null,mBuf=null,mRAF=0,mTick=0,micMode=null,mSeq=[],mLabels=[],mI=0,mOk=[],mWrong=0,mLast=null,mStable=0;
 function micMsg(t){const e=$('mMsg');if(e)e.innerHTML=t}
-async function micOn(){if(typeof navigator==='undefined'||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){micMsg('This browser cannot reach the microphone here. Open the file in Chrome, Edge or Safari and allow access.');return false}
+async function micOn(){if(typeof navigator==='undefined'||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){micMsg(T('mic.nosupport'));return false}
  micOff();
- try{mStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){micMsg('Microphone access was blocked. Allow it in the browser, then press Start again.');return false}
+ try{mStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){micMsg(T('mic.blocked'));return false}
  mCtx=mCtx||new (window.AudioContext||window.webkitAudioContext)();
  if(mCtx.state=='suspended')await mCtx.resume();
  const src=mCtx.createMediaStreamSource(mStream);mAn=mCtx.createAnalyser();mAn.fftSize=2048;mBuf=new Float32Array(mAn.fftSize);src.connect(mAn);
  if(typeof requestAnimationFrame!=='undefined')mRAF=requestAnimationFrame(micLoop);
  return true}
-function micFree(){micMode='free';mSeq=[];mLabels=[];mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;micOn().then(ok=>{if(ok)micMsg('Listening. Play a note.')})}
-function micStartSeq(){micMode='seq';mSeq=pq.seq.slice();mLabels=pq.labels.slice();mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;chipUpdate();micOn().then(ok=>{if(ok)micMsg('Listening. Play the notes in order.')})}
-function hearPrac(){stopMic();mSeq=pq.seq.slice();mLabels=pq.labels.slice();mI=0;mOk=[];mWrong=0;chipUpdate();playSeq(pq.seq);micMsg('Listen to the interval, then press Start listening and play it back.')}
+function micFree(){micMode='free';mSeq=[];mLabels=[];mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;micOn().then(ok=>{if(ok)micMsg(T('mic.listen'))})}
+function micStartSeq(){micMode='seq';mSeq=pq.seq.slice();mLabels=pq.labels.slice();mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;chipUpdate();micOn().then(ok=>{if(ok)micMsg(T('mic.listenSeq'))})}
+function hearPrac(){stopMic();mSeq=pq.seq.slice();mLabels=pq.labels.slice();mI=0;mOk=[];mWrong=0;chipUpdate();playSeq(pq.seq);micMsg(T('mic.hear'))}
 function micOff(){if(mRAF&&typeof cancelAnimationFrame!=='undefined')cancelAnimationFrame(mRAF);mRAF=0;if(mStream){try{mStream.getTracks().forEach(t=>t.stop())}catch(e){}mStream=null}mAn=null}
-function stopMic(){micOff();micMode=null;const n=$('mNote'),c=$('mCents');if(n)n.textContent='—';if(c)c.textContent='stopped'}
+function stopMic(){micOff();micMode=null;const n=$('mNote'),c=$('mCents');if(n)n.textContent='—';if(c)c.textContent=T('mic.stopped')}
 let mYin=null,mCmnd=null;
 function detectPitch(buf,sr){const L=buf.length;
  let rms=0;for(let i=0;i<L;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/L);if(rms<0.008)return 0;
@@ -380,39 +665,39 @@ function detectPitch(buf,sr){const L=buf.length;
 function micLoop(){if(typeof requestAnimationFrame!=='undefined')mRAF=requestAnimationFrame(micLoop);if(!mAn||!mBuf||!mCtx)return;
  if((mTick=(mTick||0)+1)%2)return;
  mAn.getFloatTimeDomainData(mBuf);const f=detectPitch(mBuf,mCtx.sampleRate);const nEl=$('mNote'),cEl=$('mCents'),nd=$('mNeedle');
- if(!f){if(nEl)nEl.textContent='—';if(cEl)cEl.textContent='waiting for a note';mLast=null;mStable=0;return}
- const midi=Math.round(69+12*Math.log2(f/440)),dev=1200*Math.log2(f/(440*Math.pow(2,(midi-69)/12)));
+ if(!f){if(nEl)nEl.textContent='—';if(cEl)cEl.textContent=T('mic.waiting');mLast=null;mStable=0;return}
+ const rf=refHz(),midi=Math.round(69+12*Math.log2(f/rf)),dev=1200*Math.log2(f/(rf*Math.pow(2,(midi-69)/12)));
  if(nEl)nEl.textContent=N[((midi%12)+12)%12]+(Math.floor(midi/12)-1);
- if(cEl)cEl.textContent=(dev>0?'+':'')+dev.toFixed(0)+' cents'+(Math.abs(dev)<=15?' \u00b7 in tune':'');
+ if(cEl)cEl.textContent=(dev>0?'+':'')+dev.toFixed(0)+T('mic.cents')+(Math.abs(dev)<=15?' \u00b7 '+T('mic.intune')+'':'');
  if(nd)nd.style.left=(50+Math.max(-45,Math.min(45,dev*0.9)))+'%';
  if(midi===mLast)mStable++;else{mLast=midi;mStable=1}
  if(micMode==='seq'&&mStable===4)registerNote(midi)}
-function chipUpdate(){const c=$('mChips');if(c&&c.querySelectorAll)c.querySelectorAll('.chip').forEach((el,i)=>{el.className='chip'+(mOk[i]?' '+mOk[i]:'')+(i===mI&&mI<mSeq.length?' now':'')});const st=$('mStat');if(st)st.textContent=mI+' / '+mSeq.length}
+function chipUpdate(){const c=$('mChips');if(c&&c.querySelectorAll)c.querySelectorAll('.chip').forEach((el,i)=>{el.className='chip'+(mOk[i]?' '+mOk[i]:'')+(i===mI&&mI<mSeq.length?' now':'')});const st=$('mStat');if(st)st.textContent=T('score',{c:mI,t:mSeq.length})}
 function registerNote(midi){if(mI>=mSeq.length)return;const p=((midi%12)+12)%12,tgt=((mSeq[mI]%12)+12)%12;
  if(p===tgt){mOk[mI]='ok';mI++;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
  if(!(pq&&pq.strict))for(let j=mI+1;j<mSeq.length;j++)if(((mSeq[j]%12)+12)%12===p){for(let z=mI;z<j;z++)if(!mOk[z])mOk[z]='skip';mOk[j]='ok';mI=j+1;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
- mWrong++;if(!mOk[mI])mOk[mI]='bad';chipUpdate();micMsg('Heard <b>'+N[p]+'</b>, but the next note is <b>'+mLabels[mI]+'</b>. Try again.')}
-function finishSeq(){micMode='done';micMsg((mWrong?('Finished: '+mWrong+' wrong note'+(mWrong>1?'s':'')+'. Worth another pass.'):'Every note was right and in tune. Nice.')+(pq&&pq.doneMsg?'<br>'+pq.doneMsg:''))}
+ mWrong++;if(!mOk[mI])mOk[mI]='bad';chipUpdate();micMsg(T('mic.wrong',{n:N[p],want:T(mLabels[mI])}))}
+function finishSeq(){micMode='done';micMsg((mWrong?(mWrong>1?T('mic.donen',{n:mWrong}):T('mic.done1')):T('mic.done'))+(pq&&pq.doneMsg?'<br>'+pq.doneMsg:''))}
 let cur='intervals',st={},q=null,done=false,exPicked=false;
 const EXIC={intervals:'🎵',ear:'👂',keys:'🎼',triads:'🎹',harmony:'🔗',modes:'✨'};
 const $=id=>document.getElementById(id);
 function tabs(){const h=$('nh');
- if(view=='prac'){if(h)h.textContent='Categories';$('tabs').innerHTML=Object.keys(PRAC).map(k=>'<button class="'+(k==pcat?'on':'')+'" onclick="openCat(\''+k+'\')">'+PRAC[k].n+'</button>').join('');return}
- if(h)h.textContent='Sections';
- $('tabs').innerHTML=Object.keys(MODS).map(k=>'<button class="'+((exPicked&&k==cur)?'on':'')+'" onclick="go(\''+k+'\')">'+MODS[k].name+'</button>').join('')}
+ if(view=='prac'){if(h)h.textContent=T('nav.categories');$('tabs').innerHTML=Object.keys(PRAC).map(k=>'<button class="'+(k==pcat?'on':'')+'" onclick="openCat(\''+k+'\')">'+cn(k)+'</button>').join('');return}
+ if(h)h.textContent=T('nav.sections');
+ $('tabs').innerHTML=Object.keys(MODS).map(k=>'<button class="'+((exPicked&&k==cur)?'on':'')+'" onclick="go(\''+k+'\')">'+mn(k)+'</button>').join('')}
 function drawEx(){const c=$('exCats'),r=$('exRun');if(!c||!r)return;document.body.classList.toggle('navon',exPicked);
  if(exPicked){c.style.display='none';r.style.display=''}
  else{r.style.display='none';c.style.display='';
-  c.innerHTML='<h2 class="ht">Exercises</h2><p class="hs">Pick a topic. Every question comes with the reason behind the answer.</p>'+Object.keys(MODS).map(k=>'<button class="pcard" onclick="openEx(\''+k+'\')"><b><span class="ic">'+(EXIC[k]||'🎵')+'</span>'+MODS[k].name+'</b><span>'+BLURB[k]+'</span></button>').join('')}}
+  c.innerHTML='<h2 class="ht">'+T('ex.title')+'</h2><p class="hs">'+T('ex.sub')+'</p>'+Object.keys(MODS).map(k=>'<button class="pcard" onclick="openEx(\''+k+'\')"><b><span class="ic">'+(EXIC[k]||'🎵')+'</span>'+mn(k)+'</b><span>'+blurb(k)+'</span></button>').join('')}}
 function openEx(k){show('ex');go(k)}
 function go(k){cur=k;exPicked=true;tabs();document.body.classList.remove('open');$('ttl').textContent=MODS[k].name;next();drawEx()}
 function tog(){document.body.classList.toggle('open')}
 function next(){q=MODS[cur].gen();done=false;$('lesson').innerHTML=tipFor(q);draw()}
 function reveal(){done=true;draw()}
-function draw(){if(q.task){$('quiz').innerHTML=`<p class="q">${q.q}</p>${done?`<div class="fb ok"><b>Check yourself:</b> ${q.reveal}</div><div class="row"><button class="btn" onclick="next()">Next</button><span class="stat">Hands-on · not scored</span></div>`:`<div class="row"><button class="btn" onclick="reveal()">Reveal</button><span class="stat">Try it on your instrument first</span></div>`}`;return}const s=st[cur]||{c:0,t:0};
-$('quiz').innerHTML=`<p class="q">${q.q}</p>${q.audio?`<div class="row" style="margin:0 0 12px"><button class="btn" onclick="play(${q.audio[0]},${q.audio[1]},false)">▶ Play</button><button class="btn alt" onclick="play(${q.audio[0]},${q.audio[1]},true)">Play together</button></div>`:''}
-${q.seq?'<div class="row" style="margin:0 0 12px"><button class="btn" onclick="playSeq(['+q.seq+'])">\u25b6 Play scale</button></div>':''}<div class="opts${q.wide?' w1':''}">${q.opts.map((o,i)=>`<button ${done&&!q.labels?'disabled':''} class="${done?(o==q.ans?'ok':(o==done?'no':'')):''}" onclick="${done?'hear('+i+')':'pick('+i+')'}">${o}${done&&q.labels?'<br><small>'+q.labels[o]+(q.pl?' · tap to hear':'')+'</small>':''}</button>`).join('')}</div>
-${done?`<div class="fb ${done==q.ans?'ok':'no'}"><b>${done==q.ans?'Correct.':'Not quite.'}</b> ${q.why}${q.extra?'<div style="margin-top:8px">'+q.extra+'</div>':''}</div><div class="row"><button class="btn" onclick="next()">Next question</button><span class="stat">${s.c}/${s.t} correct</span></div>`:`<div class="row"><span class="stat">${s.c}/${s.t} correct</span></div>`}`}
+function draw(){if(q.task){$('quiz').innerHTML=`<p class="q">${q.q}</p>${done?`<div class="fb ok"><b>${T('check')}</b> ${q.reveal}</div><div class="row"><button class="btn" onclick="next()">${T('btn.next')}</button><span class="stat">${T('hands')}</span></div>`:`<div class="row"><button class="btn" onclick="reveal()">${T('btn.reveal')}</button><span class="stat">${T('tryfirst')}</span></div>`}`;return}const s=st[cur]||{c:0,t:0};
+$('quiz').innerHTML=`<p class="q">${q.q}</p>${q.audio?`<div class="row" style="margin:0 0 12px"><button class="btn" onclick="play(${q.audio[0]},${q.audio[1]},false)">${T('btn.play')}</button><button class="btn alt" onclick="play(${q.audio[0]},${q.audio[1]},true)">${T('btn.together')}</button></div>`:''}
+${q.seq?'<div class="row" style="margin:0 0 12px"><button class="btn" onclick="playSeq(['+q.seq+'])">\u25b6 '+T('btn.playscale')+'</button></div>':''}<div class="opts${q.wide?' w1':''}">${q.opts.map((o,i)=>`<button ${done&&!q.labels?'disabled':''} class="${done?(o==q.ans?'ok':(o==done?'no':'')):''}" onclick="${done?'hear('+i+')':'pick('+i+')'}">${o}${done&&q.labels?'<br><small>'+q.labels[o]+(q.pl?' · tap to hear':'')+'</small>':''}</button>`).join('')}</div>
+${done?`<div class="fb ${done==q.ans?'ok':'no'}"><b>${done==q.ans?T('correct'):T('notquite')}</b> ${q.why}${q.extra?'<div style="margin-top:8px">'+q.extra+'</div>':''}</div><div class="row"><button class="btn" onclick="next()">${T('btn.nextq')}</button><span class="stat">${T('score',{c:s.c,t:s.t})}</span></div>`:`<div class="row"><span class="stat">${T('score',{c:s.c,t:s.t})}</span></div>`}`}
 function pick(i){if(done)return;done=q.opts[i];const s=st[cur]=st[cur]||{c:0,t:0};s.t++;if(done==q.ans)s.c++;record(done==q.ans);draw()}
 function hear(i){const p=q.pl&&q.pl[q.opts[i]];if(p)play(p[0],p[1],false)}
 const KEY='theorygym.v1',ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -424,7 +709,7 @@ const cut=ds(new Date(Date.now()-60*864e5));Object.keys(store.days).forEach(k=>{
 function month(){const cut=ds(new Date(Date.now()-29*864e5));let c=0,t=0;Object.entries(store.days).forEach(([k,v])=>{if(k>=cut){c+=v.c;t+=v.t}});return{c,t}}
 const pct=(c,t)=>t?Math.round(100*c/t)+'%':'–';
 const box=(l,c,t)=>'<div style="text-align:center"><div style="font:12px system-ui;color:var(--mut)">'+l+'</div><div class="big">'+pct(c,t)+'</div><div style="font:12px system-ui;color:var(--mut)">'+c+' / '+t+'</div></div>';
-function renderStats(){const m=month();$('stats').innerHTML='<div class="sg">'+box('This session',ses.c,ses.t)+box('Last 30 days',m.c,m.t)+box('Since reset',store.cust.c,store.cust.t)+'</div><div class="row"><span class="stat" style="margin-left:0">Reset counter started '+store.cust.since+'</span><button class="btn alt" style="margin-left:auto" onclick="resetCustom()">Reset</button></div>'+(canSave?'':'<p style="font:12px system-ui;color:var(--mut);margin:8px 0 0">This browser blocks saving, so the 30-day and reset counters only last while this page is open.</p>')}
+function renderStats(){const m=month();$('stats').innerHTML='<div class="sg">'+box(T('stat.session'),ses.c,ses.t)+box(T('stat.month'),m.c,m.t)+box(T('stat.since'),store.cust.c,store.cust.t)+'</div><div class="row"><span class="stat" style="margin-left:0">'+T('stat.sinceV',{d:store.cust.since})+'</span><button class="btn alt" style="margin-left:auto" onclick="resetCustom()">'+T('stat.reset')+'</button></div>'+(canSave?'':'<p style="font:12px system-ui;color:var(--mut);margin:8px 0 0">'+T('stat.nosave')+'</p>')}
 function resetCustom(){store.cust={c:0,t:0,since:ds(new Date())};save();renderStats()}
-load();renderStats();go('intervals');show('home');
+load();applySet();drawHome();renderStats();go('intervals');show('home');
 </script></body></html>
