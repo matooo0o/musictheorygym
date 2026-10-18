@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_VERSION: 1.0.${{ github.run_number }}
-      # SHA-256 of the certificate in signing/tonika.jks (set by scripts/android-signing.js)
       APP_CERT_SHA256: ebde8b1d4da7bfea4f3ccaa2ff0c2d76b269c4ee98520b1846912e39100fd289
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +25,8 @@ jobs:
         run: node scripts/android-permissions.js
       - name: Sign with the app key
         run: node scripts/android-signing.js
+      - name: Debug build.gradle
+        run: cat android/app/build.gradle
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - name: Name the APK after the version
         run: cp android/app/build/outputs/apk/debug/app-debug.apk "ToniKa-${APP_VERSION}.apk"
