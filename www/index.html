@@ -129,6 +129,7 @@ body.v-home #se{display:none}
 .tune input[type=number]{width:84px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:15px system-ui,sans-serif}
 .tune .hz{color:var(--mut);font:14px system-ui,sans-serif}
 .tunehint{font:12px system-ui,sans-serif;color:var(--mut);margin:8px 0 0}
+.ver{font:12px system-ui,sans-serif;color:var(--mut);margin:20px 0 0;text-align:center}
 /*END*/
 </style></head><body><header id="bar"><button id="hm" onclick="show('home')" aria-label="Home">⌂</button><button id="se" onclick="openSet()" aria-label="Settings">⚙</button><button id="tg" onclick="tog()" aria-label="Sections">☰</button><span id="ttl">Theory Gym</span></header><div id="scrim" onclick="tog()"></div><nav id="side"><div class="nh" id="nh">Sections</div><div class="tabs" id="tabs"></div></nav><main>
 <div id="home"><div class="hero"><div class="logo">🎼</div><h2 class="ht">Theory Gym</h2><p class="hs">Learn music theory by reading it, then play it.</p></div><button class="hcard" onclick="show('theory')"><b><span class="ic">📖</span>Read theory</b><span>Short lessons on intervals, scales, triads, chords and modes.</span></button><button class="hcard" onclick="show('ex')"><b><span class="ic">🎯</span>Exercises</b><span>Questions with the reason behind every answer.</span></button><button class="hcard" onclick="startPractice()"><b><span class="ic">🎸</span>Practical exercises</b><span>Categories of drills and things to play, with a mic that listens.</span></button></div>
@@ -153,7 +154,7 @@ const STR={
 en:{
 "app.name":"Theory Gym",
 "set.title":"Settings","set.sub":"Language, colour theme and accent colour. Your choice is remembered on this device.",
-"set.lang":"Language","set.theme":"Theme","set.auto":"System","set.light":"Light","set.dark":"Dark","set.accent":"Accent colour","set.done":"Done","set.ref":"A4 reference","set.refHint":"Tuning reference for the built-in tones and the mic. Concert pitch is 440 Hz.","hint.task":"Play it on your instrument — the mic can listen as you go, or reveal the answer.",
+"set.lang":"Language","set.theme":"Theme","set.auto":"System","set.light":"Light","set.dark":"Dark","set.accent":"Accent colour","set.done":"Done","set.ref":"A4 reference","set.refHint":"Tuning reference for the built-in tones and the mic. Concert pitch is 440 Hz.","hint.task":"Play it on your instrument — the mic can listen as you go, or reveal the answer.","set.version":"Version",
 "home.sub":"Learn music theory by reading it, then play it.",
 "home.t":"Read theory","home.ts":"Short lessons on intervals, scales, triads, chords and modes.",
 "home.e":"Exercises","home.es":"Questions with the reason behind every answer.",
@@ -190,7 +191,7 @@ en:{
 es:{
 "app.name":"Theory Gym",
 "set.title":"Ajustes","set.sub":"Idioma, tema de color y color de acento. Tu elección se guarda en este dispositivo.",
-"set.lang":"Idioma","set.theme":"Tema","set.auto":"Sistema","set.light":"Claro","set.dark":"Oscuro","set.accent":"Color de acento","set.done":"Listo","set.ref":"Referencia LA4","set.refHint":"Afinación de referencia para los tonos y el micrófono. El tono de concierto es 440 Hz.","hint.task":"Tócalo en tu instrumento: el micrófono puede escuchar mientras tocas, o muestra la respuesta.",
+"set.lang":"Idioma","set.theme":"Tema","set.auto":"Sistema","set.light":"Claro","set.dark":"Oscuro","set.accent":"Color de acento","set.done":"Listo","set.ref":"Referencia LA4","set.refHint":"Afinación de referencia para los tonos y el micrófono. El tono de concierto es 440 Hz.","hint.task":"Tócalo en tu instrumento: el micrófono puede escuchar mientras tocas, o muestra la respuesta.","set.version":"Versión",
 "home.sub":"Aprende teoría musical leyéndola y luego tocándola.",
 "home.t":"Leer teoría","home.ts":"Lecciones cortas sobre intervalos, escalas, tríadas, acordes y modos.",
 "home.e":"Ejercicios","home.es":"Preguntas con el porqué de cada respuesta.",
@@ -227,7 +228,7 @@ es:{
 it:{
 "app.name":"Theory Gym",
 "set.title":"Impostazioni","set.sub":"Lingua, tema dei colori e colore d’accento. La scelta viene ricordata su questo dispositivo.",
-"set.lang":"Lingua","set.theme":"Tema","set.auto":"Sistema","set.light":"Chiaro","set.dark":"Scuro","set.accent":"Colore d’accento","set.done":"Fatto","set.ref":"Riferimento LA4","set.refHint":"Accordatura di riferimento per i toni e il microfono. Il diapason è 440 Hz.","hint.task":"Suonalo sul tuo strumento: il microfono può ascoltare mentre suoni, oppure mostra la risposta.",
+"set.lang":"Lingua","set.theme":"Tema","set.auto":"Sistema","set.light":"Chiaro","set.dark":"Scuro","set.accent":"Colore d’accento","set.done":"Fatto","set.ref":"Riferimento LA4","set.refHint":"Accordatura di riferimento per i toni e il microfono. Il diapason è 440 Hz.","hint.task":"Suonalo sul tuo strumento: il microfono può ascoltare mentre suoni, oppure mostra la risposta.","set.version":"Versione",
 "home.sub":"Impara la teoria musicale leggendola e poi suonandola.",
 "home.t":"Leggi la teoria","home.ts":"Lezioni brevi su intervalli, scale, triadi, accordi e modi.",
 "home.e":"Esercizi","home.es":"Domande con il perché di ogni risposta.",
@@ -264,7 +265,7 @@ it:{
 pt:{
 "app.name":"Theory Gym",
 "set.title":"Ajustes","set.sub":"Idioma, tema de cores e cor de destaque. A escolha fica salva neste aparelho.",
-"set.lang":"Idioma","set.theme":"Tema","set.auto":"Sistema","set.light":"Claro","set.dark":"Escuro","set.accent":"Cor de destaque","set.done":"Pronto","set.ref":"Referência LÁ 4","set.refHint":"Referência de afinação para os tons e o microfone. O diapasão é 440 Hz.","hint.task":"Toque no seu instrumento: o microfone pode escutar enquanto você toca, ou mostre a resposta.",
+"set.lang":"Idioma","set.theme":"Tema","set.auto":"Sistema","set.light":"Claro","set.dark":"Escuro","set.accent":"Cor de destaque","set.done":"Pronto","set.ref":"Referência LÁ 4","set.refHint":"Referência de afinação para os tons e o microfone. O diapasão é 440 Hz.","hint.task":"Toque no seu instrumento: o microfone pode escutar enquanto você toca, ou mostre a resposta.","set.version":"Versão",
 "home.sub":"Aprenda teoria musical lendo e depois tocando.",
 "home.t":"Ler teoria","home.ts":"Lições curtas sobre intervalos, escalas, tríades, acordes e modos.",
 "home.e":"Exercícios","home.es":"Perguntas com o porquê de cada resposta.",
@@ -301,7 +302,7 @@ pt:{
 fr:{
 "app.name":"Theory Gym",
 "set.title":"Réglages","set.sub":"Langue, thème de couleurs et couleur d’accent. Le choix est mémorisé sur cet appareil.",
-"set.lang":"Langue","set.theme":"Thème","set.auto":"Système","set.light":"Clair","set.dark":"Sombre","set.accent":"Couleur d’accent","set.done":"Terminé","set.ref":"Référence LA 4","set.refHint":"Référence d’accord pour les sons et le micro. Le diapason est 440 Hz.","hint.task":"Joue-le sur ton instrument : le micro peut écouter pendant que tu joues, ou affiche la réponse.",
+"set.lang":"Langue","set.theme":"Thème","set.auto":"Système","set.light":"Clair","set.dark":"Sombre","set.accent":"Couleur d’accent","set.done":"Terminé","set.ref":"Référence LA 4","set.refHint":"Référence d’accord pour les sons et le micro. Le diapason est 440 Hz.","hint.task":"Joue-le sur ton instrument : le micro peut écouter pendant que tu joues, ou affiche la réponse.","set.version":"Version",
 "home.sub":"Apprends la théorie musicale en la lisant, puis en la jouant.",
 "home.t":"Lire la théorie","home.ts":"Leçons courtes sur les intervalles, les gammes, les triades, les accords et les modes.",
 "home.e":"Exercices","home.es":"Des questions avec la raison de chaque réponse.",
@@ -338,7 +339,7 @@ fr:{
 de:{
 "app.name":"Theory Gym",
 "set.title":"Einstellungen","set.sub":"Sprache, Farbthema und Akzentfarbe. Die Auswahl wird auf diesem Gerät gespeichert.",
-"set.lang":"Sprache","set.theme":"Thema","set.auto":"System","set.light":"Hell","set.dark":"Dunkel","set.accent":"Akzentfarbe","set.done":"Fertig","set.ref":"Kammerton A4","set.refHint":"Stimmreferenz für die Töne und das Mikrofon. Der Kammerton ist 440 Hz.","hint.task":"Spiele es auf deinem Instrument – das Mikrofon kann dabei zuhören, oder zeig die Antwort.",
+"set.lang":"Sprache","set.theme":"Thema","set.auto":"System","set.light":"Hell","set.dark":"Dunkel","set.accent":"Akzentfarbe","set.done":"Fertig","set.ref":"Kammerton A4","set.refHint":"Stimmreferenz für die Töne und das Mikrofon. Der Kammerton ist 440 Hz.","hint.task":"Spiele es auf deinem Instrument – das Mikrofon kann dabei zuhören, oder zeig die Antwort.","set.version":"Version",
 "home.sub":"Lerne Musiktheorie, indem du sie liest und dann spielst.",
 "home.t":"Theorie lesen","home.ts":"Kurze Lektionen zu Intervallen, Tonleitern, Dreiklängen, Akkorden und Modi.",
 "home.e":"Übungen","home.es":"Fragen mit der Begründung für jede Antwort.",
@@ -376,6 +377,7 @@ de:{
 const LANGS=[["en","English"],["es","Español"],["it","Italiano"],["pt","Português"],["fr","Français"],["de","Deutsch"]].filter(function(l){return !!STR[l[0]]});
 const ACC={orange:["#c2410c","#fb923c"],blue:["#1d4ed8","#60a5fa"],green:["#15803d","#4ade80"],purple:["#7e22ce","#c084fc"],rose:["#be123c","#fb7185"],teal:["#0f766e","#2dd4bf"]};
 const REFMIN=415,REFMAX=466;
+const APPVER="1.0.0";
 function refHz(){return(typeof SET==="object"&&SET&&typeof SET.refA==="number")?SET.refA:440}
 const SET=(function(){try{const s=JSON.parse(localStorage.getItem("theorygym.set")||"null");if(s&&typeof s==="object")return{lang:STR[s.lang]?s.lang:"en",theme:["auto","light","dark"].indexOf(s.theme)>=0?s.theme:"auto",acc:ACC[s.acc]?s.acc:"orange",refA:(typeof s.refA==="number"&&isFinite(s.refA)&&s.refA>=REFMIN&&s.refA<=REFMAX)?s.refA:440}}catch(e){}return{lang:"en",theme:"auto",acc:"orange",refA:440}})();
 function T(k,p){const d=STR[SET.lang]||{};let s=d[k]!==undefined?d[k]:STR.en[k];if(s===undefined)return k;if(p)for(const x in p)s=s.split("{"+x+"}").join(p[x]);return s}
@@ -408,6 +410,7 @@ function drawSet(){const b=$("setbox");if(!b)return;const d=darkNow()?1:0;
  +'<div class="setrow"><b>'+T("set.theme")+'</b><div class="seg">'+[["auto","set.auto"],["light","set.light"],["dark","set.dark"]].map(function(t){return '<button class="'+(t[0]==SET.theme?"on":"")+'" onclick="setTheme(&#39;'+t[0]+'&#39;)">'+T(t[1])+'</button>'}).join("")+'</div></div>'
  +'<div class="setrow"><b>'+T("set.accent")+'</b><div class="seg">'+Object.keys(ACC).map(function(k){return '<button class="sw'+(k==SET.acc?" on":"")+'" style="background:'+ACC[k][d]+'" onclick="setAcc(&#39;'+k+'&#39;)" aria-label="'+k+'"></button>'}).join("")+'</div></div>'
  +'<div class="setrow"><b>'+T("set.ref")+'</b><div class="tune"><input id="refRng" type="range" min="'+REFMIN+'" max="'+REFMAX+'" step="1" value="'+SET.refA+'" oninput="setRef(this.value,&#39;range&#39;)"><input id="refNum" type="number" min="'+REFMIN+'" max="'+REFMAX+'" step="0.1" value="'+SET.refA+'" onchange="setRef(this.value,&#39;number&#39;)"><span class="hz">Hz</span></div><p class="tunehint">'+T("set.refHint")+'</p></div>'
+ +'<p class="ver">'+T("set.version")+' '+APPVER+'</p>'
  +'<div class="row"><button class="btn" onclick="closeSet()">'+T("set.done")+'</button></div>'}
 if(typeof matchMedia=="function"&&matchMedia("(prefers-color-scheme:dark)").addEventListener)matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){applySet();drawSet()});
 const N=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
