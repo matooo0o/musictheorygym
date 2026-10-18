@@ -1,0 +1,25 @@
+name: Make signing key
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  key:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: 17}
+      - name: Generate the app signing key
+        run: |
+          keytool -genkeypair -v \
+            -keystore tonika.jks -storetype JKS \
+            -storepass tonikaKey2026 -keypass tonikaKey2026 \
+            -alias tonika -keyalg RSA -keysize 2048 -validity 10950 \
+            -dname "CN=ToniKa, O=ToniKa, C=US"
+          echo "--- certificate ---"
+          keytool -list -v -keystore tonika.jks -storepass tonikaKey2026 | sed -n '1,30p'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tonika-keystore
+          path: tonika.jks
+          retention-days: 1
