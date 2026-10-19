@@ -2,19 +2,20 @@
 /*
  * set-version.js
  *
- * Stamps a build version into the app and the Android project so every upload
+ * Stamps a build version into the app and the native projects so every upload
  * is a distinct version:
  *
  *   - Android versionName / versionCode   (android/app/build.gradle)
+ *   - iOS CFBundleShortVersionString / CFBundleVersion  (ios/App/App/Info.plist)
  *   - the in-app version shown in Settings (www/index.html)
  *
  * The version comes from the APP_VERSION environment variable, falling back to
- * "1.0.0". The Android versionCode comes from GITHUB_RUN_NUMBER (monotonic, so
- * each build installs as a newer version), falling back to the numeric tail of
- * the version string.
+ * "1.0.0". The Android versionCode and iOS CFBundleVersion come from
+ * GITHUB_RUN_NUMBER (monotonic, so each build installs as a newer version),
+ * falling back to the numeric tail of the version string.
  *
- * Run it from the repository root, after `npx cap add android` and before
- * `npx cap sync android` (so the stamped index.html is copied into the APK):
+ * Run it from the repository root, after `npx cap add android/ios` and before
+ * `npx cap sync android/ios` (so the stamped index.html is copied into the apps):
  *
  *     APP_VERSION=1.0.42 node scripts/set-version.js
  */
@@ -49,13 +50,35 @@ function patch(file, explain, pairs) {
   console.log("[set-version] patched " + file);
 }
 
+// Android
 patch(path.join("android", "app", "build.gradle"), "run after `npx cap add android`", [
   [/versionName\s+"[^"]*"/, 'versionName "' + version + '"', "versionName"],
   [/versionCode\s+\d+/, "versionCode " + code, "versionCode"]
 ]);
 
+// iOS - patch Info.plist
+const infoPlist = path.join("ios", "App", "App", "Info.plist");
+if (fs.existsSync(infoPlist)) {
+  let plist = fs.readFileSync(infoPlist, "utf8");
+  // Update CFBundleShortVersionString (marketing version)
+  plist = plist.replace(
+    /<key>CFBundleShortVersionString<\/key>\s*<string>[^<]*<\/string>/,
+    '<key>CFBundleShortVersionString</key><string>' + version + '</string>'
+  );
+  // Update CFBundleVersion (build number)
+  plist = plist.replace(
+    /<key>CFBundleVersion<\/key>\s*<string>[^<]*<\/string>/,
+    '<key>CFBundleVersion</key><string>' + code + '</string>'
+  );
+  fs.writeFileSync(infoPlist, plist);
+  console.log("[set-version] patched " + infoPlist);
+} else {
+  console.log("[set-version] Info.plist not found (will be created by cap sync), skipping");
+}
+
+// App source
 patch(path.join("www", "index.html"), "app source", [
   [/const APPVER="[^"]*"/, 'const APPVER="' + version + '"', "the APPVER constant"]
 ]);
 
-console.log("[set-version] version " + version + " (versionCode " + code + ")");
+console.log("[set-version] version " + version + " (Android versionCode " + code + ", iOS build number " + code + ")");
