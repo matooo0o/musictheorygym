@@ -30,7 +30,11 @@ jobs:
       - run: npm install
       - run: npx cap add android
       - name: Stamp the version
-        run: node scripts/set-version.js
+        run: |
+          node scripts/set-version.js
+          VERSION=$(node -p "require('./version.json').version")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Building ToniKa Android $VERSION"
       - run: npx cap sync android
       - name: Draw the launcher icon
         run: node scripts/brand.js
@@ -71,13 +75,25 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).version)")
-          if gh release view "v${VERSION}" >/dev/null 2>&1; then
-            gh release upload "v${VERSION}" "ToniKa-${VERSION}.apk" --clobber
-          else
-            gh release create "v${VERSION}" "ToniKa-${VERSION}.apk" \
-              --title "ToniKa v${VERSION}" --generate-notes
-          fi
+          set -euo pipefail
+          TAG="v${VERSION}"
+
+          # The iOS workflow uploads its IPA to this same release, so either
+          # job may be the one that creates it. Retry instead of racing.
+          for attempt in 1 2 3 4 5 6; do
+            if gh release view "$TAG" >/dev/null 2>&1; then break; fi
+            gh release create "$TAG" --title "ToniKa v${VERSION}" --generate-notes >/dev/null 2>&1 || true
+            sleep 2
+          done
+
+          gh release view "$TAG" >/dev/null 2>&1 || {
+            echo "::error::Could not create or find release $TAG"
+            exit 1
+          }
+
+          gh release upload "$TAG" "ToniKa-${VERSION}.apk" --clobber
+          echo "Assets on $TAG:"
+          gh release view "$TAG" --json assets --jq '.assets[].name'
       - name: Keep the version in Settings equal to the release
         run: |
           if git diff --quiet -- www/index.html; then

@@ -6,16 +6,17 @@ Single-file music theory trainer, packaged as an Android and iOS app with Capaci
 ## Build the APK on GitHub (Android)
 
 Go to the Actions tab, run "Build APK", and wait for the run to finish. The
-release page gets `ToniKa-<version>.apk` (also attached to the run as an
+release `v<version>` gets `ToniKa-<version>.apk` (also attached to the run as an
 artifact). The version number goes up with every build.
 
 Copy the APK to the phone and open it (allow "install unknown apps" when asked).
 
 ## Build the IPA on GitHub (iOS)
 
-Go to the Actions tab, run "Build iOS", and wait for the run to finish. The
-release page gets `ToniKa-iOS-<version>.ipa` (also attached to the run as an
-artifact). The version number goes up with every build.
+Go to the Actions tab, run "Build iOS", and wait for the run to finish. The same
+release `v<version>` gets `ToniKa-iOS-<version>.ipa` added next to the APK (also
+attached to the run as an artifact). The version number goes up with every
+build.
 
 The generated IPA is **unsigned**. That is intentional: compiling an app does
 not need an Apple certificate, and signing at export time is what made the old
