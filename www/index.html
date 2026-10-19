@@ -1376,7 +1376,7 @@ const ACC={violet:["#5B33E0","#a78bfa"],orange:["#c2410c","#fb923c"],blue:["#1d4
 const INSTS={guitar:{n:"Guitar",tun:[4,9,2,7,11,4],lab:["low E","A","D","G","B","high E"],nt:["E","A","D","G","B","E"]},bass:{n:"Bass",tun:[4,9,2,7],lab:["low E","A","D","G"],nt:["E","A","D","G"]},uke:{n:"Ukulele",tun:[7,0,4,9],lab:["G","C","E","A"],nt:["G","C","E","A"]},piano:{n:"Piano",tun:null,lab:null,nt:null}};
 const TIMBRES={piano:{type:"triangle",a:0.004,d:1.35,g:0.30},guitar:{type:"sawtooth",a:0.002,d:0.95,g:0.22},organ:{type:"square",a:0.012,d:1.70,g:0.15},strings:{type:"sawtooth",a:0.090,d:1.90,g:0.20},sine:{type:"sine",a:0.006,d:1.40,g:0.30}};
 const REFMIN=415,REFMAX=466;
-const APPVER="1.26.10.19c";
+const APPVER="1.26.10.19d";
 function refHz(){return(typeof SET==="object"&&SET&&typeof SET.refA==="number")?SET.refA:440}
 const SET=(function(){try{const s=JSON.parse(localStorage.getItem("theorygym.set")||"null");if(s&&typeof s==="object")return{lang:STR[s.lang]?s.lang:"en",theme:["auto","light","dark"].indexOf(s.theme)>=0?s.theme:"auto",acc:ACC[s.acc]?s.acc:"violet",refA:(typeof s.refA==="number"&&isFinite(s.refA)&&s.refA>=REFMIN&&s.refA<=REFMAX)?s.refA:440,notation:(s.notation==="staff")?"staff":"neck",inst:INSTS[s.inst]?s.inst:"guitar",timbre:TIMBRES[s.timbre]?s.timbre:"piano"}}catch(e){}return{lang:"en",theme:"auto",acc:"violet",refA:440,notation:"neck",inst:"guitar",timbre:"piano"}})();
 function T(k,p){const d=STR[SET.lang]||{};let s=d[k]!==undefined?d[k]:STR.en[k];if(s===undefined)return k;if(p)for(const x in p)s=s.split("{"+x+"}").join(p[x]);return s}
