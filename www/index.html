@@ -1376,7 +1376,7 @@ const ACC={violet:["#5B33E0","#a78bfa"],orange:["#c2410c","#fb923c"],blue:["#1d4
 const INSTS={guitar:{n:"Guitar",tun:[4,9,2,7,11,4],lab:["low E","A","D","G","B","high E"],nt:["E","A","D","G","B","E"]},bass:{n:"Bass",tun:[4,9,2,7],lab:["low E","A","D","G"],nt:["E","A","D","G"]},uke:{n:"Ukulele",tun:[7,0,4,9],lab:["G","C","E","A"],nt:["G","C","E","A"]},piano:{n:"Piano",tun:null,lab:null,nt:null}};
 const TIMBRES={piano:{type:"triangle",a:0.004,d:1.35,g:0.30},guitar:{type:"sawtooth",a:0.002,d:0.95,g:0.22},organ:{type:"square",a:0.012,d:1.70,g:0.15},strings:{type:"sawtooth",a:0.090,d:1.90,g:0.20},sine:{type:"sine",a:0.006,d:1.40,g:0.30}};
 const REFMIN=415,REFMAX=466;
-const APPVER="1.0.24";
+const APPVER="1.0.25";
 function refHz(){return(typeof SET==="object"&&SET&&typeof SET.refA==="number")?SET.refA:440}
 const SET=(function(){try{const s=JSON.parse(localStorage.getItem("theorygym.set")||"null");if(s&&typeof s==="object")return{lang:STR[s.lang]?s.lang:"en",theme:["auto","light","dark"].indexOf(s.theme)>=0?s.theme:"auto",acc:ACC[s.acc]?s.acc:"violet",refA:(typeof s.refA==="number"&&isFinite(s.refA)&&s.refA>=REFMIN&&s.refA<=REFMAX)?s.refA:440,notation:(s.notation==="staff")?"staff":"neck",inst:INSTS[s.inst]?s.inst:"guitar",timbre:TIMBRES[s.timbre]?s.timbre:"piano"}}catch(e){}return{lang:"en",theme:"auto",acc:"violet",refA:440,notation:"neck",inst:"guitar",timbre:"piano"}})();
 function T(k,p){const d=STR[SET.lang]||{};let s=d[k]!==undefined?d[k]:STR.en[k];if(s===undefined)return k;if(p)for(const x in p)s=s.split("{"+x+"}").join(p[x]);return s}
@@ -1719,12 +1719,12 @@ async function micOn(){if(typeof navigator==='undefined'||!navigator.mediaDevice
  const src=mCtx.createMediaStreamSource(mStream);mAn=mCtx.createAnalyser();mAn.fftSize=2048;mBuf=new Float32Array(mAn.fftSize);src.connect(mAn);
  if(typeof requestAnimationFrame!=='undefined')mRAF=requestAnimationFrame(micLoop);
  return true}
-function micFree(){micMode='free';mSeq=[];mLabels=[];mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;pMiss=0;micOn().then(ok=>{if(ok)micMsg(T('mic.listen'))})}
-function micStartSeq(){micMode='seq';const S=pq.tseq||pq.seq,L=pq.tlab||pq.labels;mSeq=S.slice();mLabels=L.slice();mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;pMiss=0;chipUpdate();micOn().then(ok=>{if(ok)micMsg(T('mic.listenSeq'))})}
+function micFree(){micMode='free';mSeq=[];mLabels=[];mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;pMiss=0;mCooldown=0;mCooldownMidi=null;micOn().then(ok=>{if(ok)micMsg(T('mic.listen'))})}
+function micStartSeq(){micMode='seq';const S=pq.tseq||pq.seq,L=pq.tlab||pq.labels;mSeq=S.slice();mLabels=L.slice();mI=0;mOk=[];mWrong=0;mLast=null;mStable=0;pMiss=0;mCooldown=0;mCooldownMidi=null;chipUpdate();micOn().then(ok=>{if(ok)micMsg(T('mic.listenSeq'))})}
 function hearPrac(){stopMic();const S=pq.tseq||pq.seq,L=pq.tlab||pq.labels;mSeq=S.slice();mLabels=L.slice();mI=0;mOk=[];mWrong=0;chipUpdate();playSeq(S);micMsg(T('mic.hear'))}
 function micOff(){if(mRAF&&typeof cancelAnimationFrame!=='undefined')cancelAnimationFrame(mRAF);mRAF=0;if(mStream){try{mStream.getTracks().forEach(t=>t.stop())}catch(e){}mStream=null}mAn=null}
-function stopMic(){micOff();micMode=null;const n=$('mNote'),c=$('mCents');if(n)n.textContent='—';if(c)c.textContent=T('mic.stopped')}
-let mYin=null,mCmnd=null,mEnergyBuf=null,mEnergyIdx=0;
+function stopMic(){micOff();micMode=null;mCooldown=0;mCooldownMidi=null;const n=$('mNote'),c=$('mCents');if(n)n.textContent='—';if(c)c.textContent=T('mic.stopped')}
+let mYin=null,mCmnd=null,mEnergyBuf=null,mEnergyIdx=0,mCooldown=0,mCooldownMidi=null;
 function detectPitch(buf,sr){const L=buf.length;
  let rms=0;for(let i=0;i<L;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/L);if(rms<0.008)return 0;
  if(!mEnergyBuf) mEnergyBuf=new Float32Array(16);
@@ -1755,9 +1755,19 @@ function micLoop(){if(typeof requestAnimationFrame!=='undefined')mRAF=requestAni
  if(cEl)cEl.textContent=(dev>0?'+':'')+dev.toFixed(0)+T('mic.cents')+(Math.abs(dev)<=15?' \u00b7 '+T('mic.intune')+'':'');
  if(nd)nd.style.left=(50+Math.max(-45,Math.min(45,dev*0.9)))+'%';
  if(midi===mLast && Math.abs(dev)<50) mStable++; else {mLast=midi; mStable=1;}
- if(micMode==='seq'&&mStable===6)registerNote(midi);else if(micMode==='free'&&mStable===6&&!tunerOn&&pq&&pq.expect&&pq.expect.indexOf(((midi%12)+12)%12)<0)pracMiss(midi)}
+ // Cooldown: ignore same pitch for ~400ms after note registration
+ if(mCooldown>0){ mCooldown--; if(mCooldown===0) mCooldownMidi=null; }
+ if(micMode==='seq'&&mStable===6){
+   if(mCooldown===0 || midi!==mCooldownMidi){
+     registerNote(midi);
+     mCooldown=8; // ~400ms at 50fps (every 2 frames = 20fps, 8*50ms = 400ms)
+     mCooldownMidi=midi;
+   }
+ }else if(micMode==='free'&&mStable===6&&!tunerOn&&pq&&pq.expect&&pq.expect.indexOf(((midi%12)+12)%12)<0){
+   pracMiss(midi)
+ }}
 function chipUpdate(){const c=$('mChips');if(c&&c.querySelectorAll)c.querySelectorAll('.chip').forEach((el,i)=>{el.className='chip'+(mOk[i]?' '+mOk[i]:'')+(i===mI&&mI<mSeq.length?' now':'')});const st=$('mStat');if(st)st.textContent=T('score',{c:mI,t:mSeq.length})}
-function registerNote(midi){if(mI>=mSeq.length)return;const p=((midi%12)+12)%12,tgt=((mSeq[mI]%12)+12)%12;
+function registerNote(midi){if(mI>=mSeq.length)return;mCooldown=8;mCooldownMidi=midi;const p=((midi%12)+12)%12,tgt=((mSeq[mI]%12)+12)%12;
  if(p===tgt){mOk[mI]='ok';mI++;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
  if(!(pq&&pq.strict))for(let j=mI+1;j<mSeq.length;j++)if(((mSeq[j]%12)+12)%12===p){for(let z=mI;z<j;z++)if(!mOk[z]){mOk[z]='skip';mWrong++}mOk[j]='ok';mI=j+1;chipUpdate();if(mI>=mSeq.length)finishSeq();return}
  mWrong++;if(!mOk[mI])mOk[mI]='bad';chipUpdate();micMsg(T('mic.wrong',{n:N[p],want:T(mLabels[mI])}))}
