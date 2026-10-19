@@ -1,6 +1,6 @@
 name: Build iOS
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   push:
     branches: [main]
     paths:
@@ -18,9 +18,6 @@ permissions:
 jobs:
   build:
     runs-on: macos-latest
-    env:
-      # Read version from version.json
-      VERSION: ${{ fromJson(github.event.repository.default_branch != 'main' && '1.0.0' || '1.0.0') }}
     steps:
       - uses: actions/checkout@v4
 
