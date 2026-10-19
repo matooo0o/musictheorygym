@@ -2,41 +2,37 @@
 /*
  * set-version.js
  *
- * Stamps a build version into the app and the native projects so every upload
- * is a distinct version:
- *
- *   - Android versionName / versionCode   (android/app/build.gradle)
- *   - iOS CFBundleShortVersionString / CFBundleVersion  (ios/App/App/Info.plist)
- *   - the in-app version shown in Settings (www/index.html)
- *
- * The version comes from the APP_VERSION environment variable, falling back to
- * "1.0.0". The Android versionCode and iOS CFBundleVersion come from
- * GITHUB_RUN_NUMBER (monotonic, so each build installs as a newer version),
- * falling back to the numeric tail of the version string.
- *
- * Run it from the repository root, after `npx cap add android/ios` and before
- * `npx cap sync android/ios` (so the stamped index.html is copied into the apps):
- *
- *     APP_VERSION=1.0.42 node scripts/set-version.js
+ * Stamps a build version into the app and the native projects.
+ * Reads version from version.json (single source of truth).
+ * Version format: 1.YYYY.MM.DD + optional letter suffix (a, b, c...)
+ * Android versionCode: YYYYMMDD * 100 + letterIndex (a=0, b=1...) * 100
+ * iOS buildNumber: same formula
+ * Gracefully handles Android-only or iOS-only builds.
  */
 
 const fs = require("fs");
 const path = require("path");
 
-const version = process.env.APP_VERSION || "1.0.0";
-const tail = (version.match(/(\d+)\s*$/) || [])[1];
-const runNumber = parseInt(process.env.GITHUB_RUN_NUMBER || "", 10);
-const code = Number.isFinite(runNumber) && runNumber > 0 ? runNumber : (tail ? parseInt(tail, 10) : 1);
+const versionFile = path.join(__dirname, "..", "version.json");
+if (!fs.existsSync(versionFile)) {
+  console.error("[set-version] version.json not found");
+  process.exit(1);
+}
 
-if (!/^\d+(\.\d+)*$/.test(version)) {
-  console.error("[set-version] refusing to use a non-numeric version: " + version);
+const { version, android, ios } = JSON.parse(fs.readFileSync(versionFile, "utf8"));
+const code = android.versionCode;
+const iosBuild = ios.buildNumber;
+
+// Validate version format: 1.YYYY.MM.DD or 1.YYYY.MM.DD[a-z]
+if (!/^1\.\d{4}\.\d{2}\.\d{2}([a-z])?$/.test(version)) {
+  console.error("[set-version] invalid version format (expected 1.YYYY.MM.DD or 1.YYYY.MM.DDx): " + version);
   process.exit(1);
 }
 
 function patch(file, explain, pairs) {
   if (!fs.existsSync(file)) {
-    console.error("[set-version] " + file + " not found (" + explain + ").");
-    process.exit(1);
+    console.log("[set-version] " + file + " not found (" + explain + "), skipping");
+    return;
   }
   let text = fs.readFileSync(file, "utf8");
   for (const [find, replace, label] of pairs) {
@@ -50,30 +46,33 @@ function patch(file, explain, pairs) {
   console.log("[set-version] patched " + file);
 }
 
-// Android
-patch(path.join("android", "app", "build.gradle"), "run after `npx cap add android`", [
-  [/versionName\s+"[^"]*"/, 'versionName "' + version + '"', "versionName"],
-  [/versionCode\s+\d+/, "versionCode " + code, "versionCode"]
-]);
+// Android (only if android project exists)
+const androidGradle = path.join("android", "app", "build.gradle");
+if (fs.existsSync(androidGradle)) {
+  patch(androidGradle, "run after `npx cap add android`", [
+    [/versionName\s+"[^"]*"/, 'versionName "' + version + '"', "versionName"],
+    [/versionCode\s+\d+/, "versionCode " + code, "versionCode"]
+  ]);
+} else {
+  console.log("[set-version] Android project not found, skipping Android version");
+}
 
 // iOS - patch Info.plist
 const infoPlist = path.join("ios", "App", "App", "Info.plist");
 if (fs.existsSync(infoPlist)) {
   let plist = fs.readFileSync(infoPlist, "utf8");
-  // Update CFBundleShortVersionString (marketing version)
   plist = plist.replace(
     /<key>CFBundleShortVersionString<\/key>\s*<string>[^<]*<\/string>/,
     '<key>CFBundleShortVersionString</key><string>' + version + '</string>'
   );
-  // Update CFBundleVersion (build number)
   plist = plist.replace(
     /<key>CFBundleVersion<\/key>\s*<string>[^<]*<\/string>/,
-    '<key>CFBundleVersion</key><string>' + code + '</string>'
+    '<key>CFBundleVersion</key><string>' + iosBuild + '</string>'
   );
   fs.writeFileSync(infoPlist, plist);
   console.log("[set-version] patched " + infoPlist);
 } else {
-  console.log("[set-version] Info.plist not found (will be created by cap sync), skipping");
+  console.log("[set-version] Info.plist not found, skipping iOS version");
 }
 
 // App source
@@ -81,4 +80,4 @@ patch(path.join("www", "index.html"), "app source", [
   [/const APPVER="[^"]*"/, 'const APPVER="' + version + '"', "the APPVER constant"]
 ]);
 
-console.log("[set-version] version " + version + " (Android versionCode " + code + ", iOS build number " + code + ")");
+console.log("[set-version] version " + version + " (Android versionCode " + code + ", iOS build " + iosBuild + ")");

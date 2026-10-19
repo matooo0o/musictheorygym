@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToniKa Version Monitor</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #16213e;
+      padding: 16px 24px;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    h1 { margin: 0; font-size: 18px; color: #e94560; }
+    .status {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #444; }
+    .dot.online { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+    .dot.checking { background: #ffaa00; box-shadow: 0 0 8px #ffaa00; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.5; } }
+    main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .controls {
+      padding: 16px 24px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    button {
+      background: #e94560; color: white; border: none;
+      padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
+    }
+    button:hover { background: #ff6b6b; }
+    button:disabled { background: #444; cursor: not-allowed; }
+    select { background: #1a1a2e; color: #eee; border: 1px solid #0f3460; padding: 8px 12px; border-radius: 6px; }
+    .version-info {
+      display: flex; gap: 16px; font-size: 13px; color: #888;
+    }
+    .version-info span { background: #0f3460; padding: 2px 8px; border-radius: 4px; }
+    iframe {
+      flex: 1; border: none; background: white;
+    }
+    .log {
+      height: 120px; overflow-y: auto;
+      background: #0f0f1a; color: #0f0;
+      font-family: monospace; font-size: 11px; padding: 8px;
+      border-top: 1px solid #0f3460;
+    }
+    .log-entry { margin: 2px 0; }
+    .log-entry.error { color: #ff4444; }
+    .log-entry.warn { color: #ffaa00; }
+    .log-entry.success { color: #00ff88; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎸 ToniKa Version Monitor</h1>
+    <div class="status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Initializing...</span>
+    </div>
+  </header>
+  <main>
+    <div class="controls">
+      <button id="refreshBtn" onclick="checkVersion()">🔄 Check Now</button>
+      <button id="autoBtn" onclick="toggleAuto()">▶️ Auto</button>
+      <select id="intervalSelect">
+        <option value="30000">30s</option>
+        <option value="60000" selected>1 min</option>
+        <option value="300000">5 min</option>
+      </select>
+      <div class="version-info">
+        <span>Current: <strong id="currentVersion">—</strong></span>
+        <span>Latest: <strong id="latestVersion">—</strong></span>
+        <span>Android: <strong id="androidCode">—</strong></span>
+        <span>iOS: <strong id="iosBuild">—</strong></span>
+      </div>
+    </div>
+    <iframe id="previewFrame" src="https://matooo0o.github.io/musictheorygym/" title="ToniKa Preview"></iframe>
+    <div class="log" id="log"></div>
+  </main>
+  <script>
+    const REPO = "matooo0o/musictheorygym";
+    const API = "https://api.github.com";
+    let autoTimer = null;
+    let isChecking = false;
+
+    const elements = {
+      dot: document.getElementById('statusDot'),
+      text: document.getElementById('statusText'),
+      currentVersion: document.getElementById('currentVersion'),
+      latestVersion: document.getElementById('latestVersion'),
+      androidCode: document.getElementById('androidCode'),
+      iosBuild: document.getElementById('iosBuild'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      autoBtn: document.getElementById('autoBtn'),
+      intervalSelect: document.getElementById('intervalSelect'),
+      log: document.getElementById('log'),
+      frame: document.getElementById('previewFrame'),
+    };
+
+    function log(msg, type = '') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      elements.log.appendChild(entry);
+      elements.log.scrollTop = elements.log.scrollHeight;
+    }
+
+    function setStatus(online, msg) {
+      elements.dot.className = 'dot ' + (online ? 'online' : '');
+      elements.text.textContent = msg;
+    }
+
+    async function fetchVersion() {
+      try {
+        const res = await fetch(`https://api.github.com/repos/matooo0o/musictheorygym/contents/version.json`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const content = atob(data.content.replace(/\s/g, ''));
+        return JSON.parse(content);
+      } catch (e) {
+        log('Failed to fetch version: ' + e.message, 'error');
+        return null;
+      }
+    }
+
+    async function fetchReleases() {
+      try {
+        const res = await fetch(`${API}/repos/matooo0o/musictheorygym/releases?per_page=5`);
+        if (!res.ok) return [];
+        return await res.json();
+      } catch { return []; }
+    }
+
+    async function checkVersion() {
+      if (isChecking) return;
+      isChecking = true;
+      setStatus(false, 'Checking...');
+      elements.refreshBtn.disabled = true;
+
+      const [versionData, releases] = await Promise.all([fetchVersion(), fetchReleases()]);
+
+      if (versionData) {
+        elements.currentVersion.textContent = versionData.version;
+        elements.androidCode.textContent = versionData.android?.versionCode || '—';
+        elements.iosBuild.textContent = versionData.ios?.buildNumber || '—';
+        log(`Version: ${versionData.version} (Android: ${versionData.android?.versionCode}, iOS: ${versionData.ios?.buildNumber})`, 'success');
+      }
+
+      if (releases.length > 0) {
+        const latest = releases[0];
+        elements.latestVersion.textContent = latest.tag_name;
+        if (versionData && latest.tag_name !== 'v' + versionData.version) {
+          log(`🆕 New release: ${latest.tag_name}`, 'warn');
+          setStatus(true, 'New version available!');
+        } else {
+          setStatus(true, 'Up to date');
+        }
+      } else {
+        setStatus(true, 'Connected');
+      }
+
+      isChecking = false;
+      elements.refreshBtn.disabled = false;
+    }
+
+    function toggleAuto() {
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        elements.autoBtn.textContent = '▶️ Auto';
+        log('Auto-check stopped');
+      } else {
+        const interval = parseInt(elements.intervalSelect.value);
+        autoTimer = setInterval(checkVersion, interval);
+        elements.autoBtn.textContent = '⏹️ Stop';
+        log(`Auto-check started (${interval/1000}s interval)`);
+        checkVersion();
+      }
+    }
+
+    function refreshPreview() {
+      elements.frame.src = elements.frame.src;
+      log('Preview refreshed');
+    }
+
+    // Listen for messages from iframe (if same origin)
+    window.addEventListener('message', e => {
+      if (e.data?.type === 'tonika-version') {
+        elements.currentVersion.textContent = e.data.version;
+        log(`App reports version: ${e.data.version}`, 'success');
+      }
+    });
+
+    // Initial load
+    log('ToniKa Version Monitor started');
+    checkVersion();
+
+    // Auto-start after 2 seconds
+    setTimeout(() => {
+      if (!autoTimer) {
+        elements.autoBtn.click();
+      }
+    }, 2000);
+
+    // Refresh preview when new version detected
+    let lastVersion = null;
+    const observer = new MutationObserver(() => {
+      const v = elements.currentVersion.textContent;
+      if (v !== '—' && v !== lastVersion) {
+        lastVersion = v;
+        setTimeout(refreshPreview, 2000);
+      }
+    });
+    observer.observe(elements.currentVersion, { childList: true, characterData: true, subtree: true });
+  </script>
+</body>
+</html>
