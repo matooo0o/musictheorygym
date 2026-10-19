@@ -4,8 +4,8 @@
  *
  * Stamps a build version into the app and the native projects.
  * Reads version from version.json (single source of truth).
- * Version format: 1.YYYY.MM.DD + optional letter suffix (a, b, c...)
- * Android versionCode: YYYYMMDD * 100 + letterIndex (a=0, b=1...) * 100
+ * Version format: 1.YY.MM.DD + optional letter suffix (a, b, c...)
+ * Android versionCode: YYMMDD * 100 + letterIndex (a=0, b=1...) * 100
  * iOS buildNumber: same formula
  * Gracefully handles Android-only or iOS-only builds.
  */
@@ -19,13 +19,30 @@ if (!fs.existsSync(versionFile)) {
   process.exit(1);
 }
 
-const { version, android, ios } = JSON.parse(fs.readFileSync(versionFile, "utf8"));
+const raw = fs.readFileSync(versionFile, "utf8");
+console.log("[set-version] versionFile path:", versionFile);
+console.log("[set-version] raw version.json:", raw.slice(0, 500));
+const parsed = JSON.parse(raw);
+console.log("[set-version] parsed version:", JSON.stringify(parsed.version));
+console.log("[set-version] version regex test:", /^1\.\d{2}\.\d{2}\.\d{2}([a-z])?$/.test(parsed.version));
+console.log("[set-version] cwd:", process.cwd());
+console.log("[set-version] __dirname:", __dirname);
+const { version: rawVersion, android, ios } = parsed;
+const version = rawVersion.trim();
 const code = android.versionCode;
 const iosBuild = ios.buildNumber;
 
-// Validate version format: 1.YYYY.MM.DD or 1.YYYY.MM.DD[a-z]
-if (!/^1\.\d{4}\.\d{2}\.\d{2}([a-z])?$/.test(version)) {
-  console.error("[set-version] invalid version format (expected 1.YYYY.MM.DD or 1.YYYY.MM.DDx): " + version);
+// CFBundleShortVersionString must be one to three period-separated integers.
+// The app version is 1.YY.MM.DD[suffix], so iOS gets 1.YY.MMDD; the Settings
+// screen still shows the full version because it reads the APPVER constant.
+const iosVersion = (() => {
+  const m = /^1\.(\d{2})\.(\d{2})\.(\d{2})[a-z]?$/.exec(version);
+  return m ? "1." + m[1] + "." + m[2] + m[3] : (version.replace(/[^0-9.]/g, "") || "1.0");
+})();
+
+// Validate version format: 1.YY.MM.DD or 1.YY.MM.DD[a-z]
+if (!/^1\.\d{2}\.\d{2}\.\d{2}([a-z])?$/.test(version)) {
+  console.error("[set-version] invalid version format (expected 1.YY.MM.DD or 1.YY.MM.DDx): " + version);
   process.exit(1);
 }
 
@@ -63,7 +80,7 @@ if (fs.existsSync(infoPlist)) {
   let plist = fs.readFileSync(infoPlist, "utf8");
   plist = plist.replace(
     /<key>CFBundleShortVersionString<\/key>\s*<string>[^<]*<\/string>/,
-    '<key>CFBundleShortVersionString</key><string>' + version + '</string>'
+    '<key>CFBundleShortVersionString</key><string>' + iosVersion + '</string>'
   );
   plist = plist.replace(
     /<key>CFBundleVersion<\/key>\s*<string>[^<]*<\/string>/,
