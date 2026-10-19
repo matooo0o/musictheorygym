@@ -9,6 +9,7 @@ on:
       - 'capacitor.config.json'
       - 'package.json'
       - 'ios/**'
+      - 'version.json'
       - '.github/workflows/build-ios.yml'
 
 permissions:
@@ -18,8 +19,8 @@ jobs:
   build:
     runs-on: macos-latest
     env:
-      APP_VERSION: 1.0.${{ github.run_number }}
-      IOS_BUILD_NUMBER: ${{ github.run_number }}
+      # Read version from version.json
+      VERSION: ${{ fromJson(github.event.repository.default_branch != 'main' && '1.0.0' || '1.0.0') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +47,10 @@ jobs:
       - name: Stamp the version
         run: |
           node scripts/set-version.js
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $IOS_BUILD_NUMBER" ios/App/App/Info.plist
+          VERSION=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).version)")
+          IOS_BUILD=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).ios.buildNumber)")
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $IOS_BUILD" ios/App/App/Info.plist
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - run: npx cap sync ios
 
@@ -65,36 +69,71 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY=""
 
-      - name: Export IPA
+      - name: Export IPA (unsigned, for sideloading)
         run: |
           cd ios/App
+          # Create export options for ad-hoc/unsigned build
+          cat > exportOptions.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>ad-hoc</string>
+    <key>teamID</key>
+    <string></string>
+    <key>compileBitcode</key>
+    <false/>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>thinning</key>
+    <string><none></string>
+</dict>
+</plist>
+EOF
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \
             -exportPath build/export \
-            -exportOptionsPlist exportOptions.plist
+            -exportOptionsPlist exportOptions.plist \
+            2>&1 | tail -20
 
-      - name: Verify IPA
+      - name: Rename IPA with version
         run: |
-          IPA="ios/App/build/export/App.ipa"
-          echo "IPA size: $(wc -c < "$IPA") bytes"
-          unzip -l "$IPA" | head -20
+          VERSION=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).version)")
+          IPA_SRC="ios/App/build/export/App.ipa"
+          IPA_DST="ToniKa-iOS-${VERSION}.ipa"
+          if [ -f "$IPA_SRC" ]; then
+            cp "$IPA_SRC" "$IPA_DST"
+            echo "IPA created: $IPA_DST"
+            echo "IPA size: $(wc -c < "$IPA_DST") bytes"
+          else
+            echo "ERROR: IPA not found at $IPA_SRC"
+            ls -la ios/App/build/export/
+            exit 1
+          fi
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ToniKa-iOS-${{ env.APP_VERSION }}
-          path: ios/App/build/export/App.ipa
+          name: ToniKa-iOS-${{ env.VERSION }}
+          path: ToniKa-iOS-*.ipa
 
       - name: Create GitHub Release (iOS)
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          IPA="ios/App/build/export/App.ipa"
-          if gh release view "v${APP_VERSION}-ios" >/dev/null 2>&1; then
-            gh release upload "v${APP_VERSION}-ios" "$IPA" --clobber
+          VERSION=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).version)")
+          IPA="ToniKa-iOS-${VERSION}.ipa"
+          if [ -f "$IPA" ]; then
+            if gh release view "v${VERSION}-ios" >/dev/null 2>&1; then
+              gh release upload "v${VERSION}-ios" "$IPA" --clobber
+            else
+              gh release create "v${VERSION}-ios" "$IPA" \
+                --title "ToniKa iOS v${VERSION}" \
+                --notes "iOS build (unsigned, install via AltStore/Sideloadly/Xcode)"
+            fi
           else
-            gh release create "v${APP_VERSION}-ios" "$IPA" \
-              --title "ToniKa iOS v${APP_VERSION}" \
-              --notes "iOS build ${{ github.run_number }}"
+            echo "IPA not found"
+            exit 1
           fi
