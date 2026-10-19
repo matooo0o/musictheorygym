@@ -19,7 +19,6 @@ jobs:
     runs-on: macos-latest
     env:
       APP_VERSION: 1.0.${{ github.run_number }}
-      # iOS bundle version (build number) - must increment for each upload to TestFlight/App Store
       IOS_BUILD_NUMBER: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
@@ -36,12 +35,17 @@ jobs:
 
       - run: npm install
 
-      - run: npx cap add ios
+      - name: Add iOS platform (if not exists)
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          else
+            echo "iOS platform already exists"
+          fi
 
       - name: Stamp the version
         run: |
           node scripts/set-version.js
-          # Update iOS build number in Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $IOS_BUILD_NUMBER" ios/App/App/Info.plist
 
       - run: npx cap sync ios
