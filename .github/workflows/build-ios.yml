@@ -1,6 +1,7 @@
 name: Build iOS
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs: {}
   push:
     branches: [main]
     paths:
