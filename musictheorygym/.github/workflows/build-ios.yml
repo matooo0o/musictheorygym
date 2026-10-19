@@ -1,5 +1,4 @@
 name: Build iOS
-
 on:
   workflow_dispatch:
   push:
@@ -16,169 +15,122 @@ on:
 permissions:
   contents: write
 
-# One iOS build at a time per branch, so two pushes cannot race to publish the
-# same release tag.
-concurrency:
-  group: build-ios-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   build:
-    # Pinned on purpose: Capacitor 6 is built and tested against the Xcode 16
-    # toolchain shipped with the macOS 15 image. "macos-latest" can move to a
-    # newer Xcode without warning and break the build.
-    runs-on: macos-15
-    timeout-minutes: 60
-
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
+        with: {node-version: 20}
+
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: 17}
 
       - name: Install CocoaPods
         run: |
-          if ! command -v pod >/dev/null 2>&1; then
-            echo "CocoaPods not preinstalled, installing with Homebrew"
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
-          fi
-          pod --version
+          sudo gem install cocoapods -q
 
-      - name: Cache CocoaPods specs
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Caches/CocoaPods
-          key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/App/Podfile', 'package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-cocoapods-
+      - run: npm install
 
-      - name: Install JS dependencies
-        run: npm install --no-audit --no-fund
-
-      - name: Add the iOS platform if it is missing
+      - name: Add iOS platform (if not exists)
         run: |
-          if [ ! -d "ios/App/App.xcodeproj" ]; then
+          if [ ! -d "ios" ]; then
             npx cap add ios
+          else
+            echo "iOS platform already exists"
           fi
 
       - name: Stamp the version
         run: |
           node scripts/set-version.js
-          VERSION=$(node -p "require('./version.json').version")
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "Building ToniKa iOS $VERSION"
+          VERSION=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).version)")
+          IOS_BUILD=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).ios.buildNumber)")
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $IOS_BUILD" ios/App/App/Info.plist
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Sync web assets and install pods
-        run: npx cap sync ios
-
-      - name: Declare the privacy usage descriptions
-        run: node scripts/ios-permissions.js
+      - run: npx cap sync ios
 
       - name: Draw the launcher icon
         run: node scripts/brand-ios.js
 
-      - name: Build the archive (unsigned)
-        # The archive is deliberately unsigned: no Apple certificate is needed
-        # to compile the app. Signing happens later, on the machine or with the
-        # sideloading tool that installs it.
+      - name: Build iOS App
         run: |
-          set -o pipefail
-          xcodebuild -version
           cd ios/App
-          mkdir -p build
-          xcodebuild \
-            -workspace App.xcworkspace \
+          xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -archivePath "$PWD/build/App.xcarchive" \
+            -destination generic/platform=iOS \
+            -archivePath build/App.xcarchive \
             archive \
             CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            EXPANDED_CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            | tee build/xcodebuild.log
+            CODE_SIGN_IDENTITY=""
 
-      - name: Package the unsigned IPA
-        # xcodebuild -exportArchive refuses to run without a signing identity,
-        # so the .ipa is assembled by hand: an .ipa is just a zip with a
-        # Payload/ directory that contains the .app bundle.
+      - name: Export IPA (unsigned, for sideloading)
         run: |
-          set -euo pipefail
-          APP="ios/App/build/App.xcarchive/Products/Applications/App.app"
-          IPA="ToniKa-iOS-${VERSION}.ipa"
+          cd ios/App
+          # Create export options for ad-hoc/unsigned build
+          cat > exportOptions.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>ad-hoc</string>
+    <key>teamID</key>
+    <string></string>
+    <key>compileBitcode</key>
+    <false/>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>thinning</key>
+    <string><none></string>
+</dict>
+</plist>
+EOF
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist exportOptions.plist \
+            2>&1 | tail -20
 
-          if [ ! -d "$APP" ]; then
-            echo "::error::App.app was not found in the archive"
-            find ios/App/build -maxdepth 5 -print || true
+      - name: Rename IPA with version
+        run: |
+          VERSION=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).version)")
+          IPA_SRC="ios/App/build/export/App.ipa"
+          IPA_DST="ToniKa-iOS-${VERSION}.ipa"
+          if [ -f "$IPA_SRC" ]; then
+            cp "$IPA_SRC" "$IPA_DST"
+            echo "IPA created: $IPA_DST"
+            echo "IPA size: $(wc -c < "$IPA_DST") bytes"
+          else
+            echo "ERROR: IPA not found at $IPA_SRC"
+            ls -la ios/App/build/export/
             exit 1
           fi
-
-          rm -rf build/ipa
-          mkdir -p build/ipa/Payload
-          cp -R "$APP" build/ipa/Payload/App.app
-
-          # Remove any leftover signature so the sideloading tool re-signs the
-          # bundle cleanly with the user's own certificate.
-          rm -rf build/ipa/Payload/App.app/_CodeSignature
-          find build/ipa/Payload/App.app -name "embedded.mobileprovision" -delete
-
-          # ditto keeps permissions, symlinks and extended attributes intact.
-          ditto -c -k --sequesterRsrc --keepParent build/ipa/Payload "$IPA"
-
-          # An .ipa must have Payload/App.app at the very top level, not nested
-          # inside another directory.
-          unzip -Z1 "$IPA" > build/ipa-list.txt
-          if ! grep -Fqx "Payload/App.app/App" build/ipa-list.txt; then
-            echo "::error::The IPA does not contain Payload/App.app/App"
-            sed -n '1,20p' build/ipa-list.txt
-            exit 1
-          fi
-
-          echo "IPA: $IPA ($(wc -c < "$IPA") bytes)"
-          unzip -l "$IPA" | sed -n '1,15p'
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" build/ipa/Payload/App.app/Info.plist
-          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" build/ipa/Payload/App.app/Info.plist
-          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" build/ipa/Payload/App.app/Info.plist
-          lipo -info build/ipa/Payload/App.app/App
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ToniKa-iOS-${{ env.VERSION }}
-          path: ToniKa-iOS-${{ env.VERSION }}.ipa
-          if-no-files-found: error
-          retention-days: 30
+          path: ToniKa-iOS-*.ipa
 
       - name: Create GitHub Release (iOS)
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
+          VERSION=$(node -e "console.log(JSON.parse(fs.readFileSync('version.json')).version)")
           IPA="ToniKa-iOS-${VERSION}.ipa"
-          TAG="v${VERSION}-ios"
-
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$IPA" --clobber
+          if [ -f "$IPA" ]; then
+            if gh release view "v${VERSION}-ios" >/dev/null 2>&1; then
+              gh release upload "v${VERSION}-ios" "$IPA" --clobber
+            else
+              gh release create "v${VERSION}-ios" "$IPA" \
+                --title "ToniKa iOS v${VERSION}" \
+                --notes "iOS build (unsigned, install via AltStore/Sideloadly/Xcode)"
+            fi
           else
-            gh release create "$TAG" "$IPA" \
-              --title "ToniKa iOS v${VERSION}" \
-              --notes "iOS build (unsigned). Install by re-signing with AltStore, Sideloadly or Xcode."
+            echo "IPA not found"
+            exit 1
           fi
-
-      - name: Summary
-        run: |
-          {
-            echo "### iOS build succeeded"
-            echo ""
-            echo "- Version: \`${VERSION}\`"
-            echo "- IPA: \`ToniKa-iOS-${VERSION}.ipa\`"
-            echo "- Bundle: \`com.theorygym.app\`"
-            echo ""
-            echo "The IPA is unsigned. It must be signed for the target device"
-            echo "with AltStore, Sideloadly, Xcode or Apple Configurator."
-          } >> "$GITHUB_STEP_SUMMARY"
