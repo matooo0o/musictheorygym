@@ -30,7 +30,14 @@ const inCircle = (x, y, cx, cy, r) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
 function sample(kind, u, v) {
   let col = null;
   if (kind !== "fg") {
-    const bg = kind === "round" ? inCircle(u, v, 50, 50, 49) : inRoundRect(u, v, { x0: 1.5, y0: 1.5, x1: 98.5, y1: 98.5, r: 23 });
+    // "flat" fills the whole square: iOS applies its own rounded mask, so the
+    // icon must be opaque edge to edge (transparency is rejected by the App
+    // Store and can show black corners on older iOS versions).
+    const bg = kind === "flat"
+      ? true
+      : kind === "round"
+        ? inCircle(u, v, 50, 50, 49)
+        : inRoundRect(u, v, { x0: 1.5, y0: 1.5, x1: 98.5, y1: 98.5, r: 23 });
     if (!bg) return null;
     col = BRAND;
   }
@@ -70,12 +77,25 @@ function render(kind, size) {
 const CRC = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 const crc32 = buf => { let c = 0xFFFFFFFF; for (const b of buf) c = CRC[(c ^ b) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
 const chunk = (type, data) => { const l = Buffer.alloc(4); l.writeUInt32BE(data.length); const t = Buffer.from(type, "ascii"); const c = Buffer.alloc(4); c.writeUInt32BE(crc32(Buffer.concat([t, data]))); return Buffer.concat([l, t, data, c]); };
-function png(size, rgba) {
+function png(size, rgba, withAlpha = true) {
+  const channels = withAlpha ? 4 : 3;
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(size, 0); ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8; ihdr[9] = 6; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
-  const raw = Buffer.alloc((size * 4 + 1) * size);
-  for (let y = 0; y < size; y++) { raw[y * (size * 4 + 1)] = 0; rgba.copy(raw, y * (size * 4 + 1) + 1, y * size * 4, (y + 1) * size * 4); }
+  ihdr[8] = 8; ihdr[9] = withAlpha ? 6 : 2; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
+  const stride = size * channels + 1;
+  const raw = Buffer.alloc(stride * size);
+  for (let y = 0; y < size; y++) {
+    const row = y * stride;
+    raw[row] = 0;                                   // filter: none
+    for (let x = 0; x < size; x++) {
+      const s = (y * size + x) * 4;
+      const d = row + 1 + x * channels;
+      raw[d] = rgba[s];
+      raw[d + 1] = rgba[s + 1];
+      raw[d + 2] = rgba[s + 2];
+      if (withAlpha) raw[d + 3] = rgba[s + 3];
+    }
+  }
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", zlib.deflateSync(raw, { level: 9 })), chunk("IEND", Buffer.alloc(0))]);
 }
 
@@ -118,13 +138,11 @@ function main(xcassetsDir) {
       const pixelSize = Math.round(entry.size * scale);
       const filename = `icon_${entry.size}x${entry.size}@${scale}x.png`;
       const filepath = path.join(appIconDir, filename);
-      
-      // Determine icon kind: square for most, round for some
-      const isMarketing = entry.idiom === "ios-marketing";
-      const kind = isMarketing ? "square" : "round";
-      
-      const rgba = render(kind, pixelSize);
-      const pngBuf = png(pixelSize, rgba);
+
+      // Full-bleed square icons with no alpha channel: iOS rounds the corners
+      // itself and the App Store rejects icons that contain transparency.
+      const rgba = render("flat", pixelSize);
+      const pngBuf = png(pixelSize, rgba, false);
       fs.writeFileSync(filepath, pngBuf);
       made.push(filepath);
 
@@ -132,9 +150,7 @@ function main(xcassetsDir) {
         idiom: entry.idiom,
         size: `${entry.size}x${entry.size}`,
         scale: `${scale}x`,
-        filename: filename,
-        role: isMarketing ? "ios-marketing" : undefined,
-        subtype: entry.idiom === "ipad" ? "ipad" : undefined
+        filename: filename
       });
     }
   }
