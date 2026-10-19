@@ -1,6 +1,10 @@
 {
-  "version": "1.26.10.19",
-  "android": { "versionCode": 26101900 },
-  "ios": { "buildNumber": 26101900 },
+  "version": "1.26.10.19c",
+  "android": {
+    "versionCode": 26102200
+  },
+  "ios": {
+    "buildNumber": 26102200
+  },
   "android_cert_sha256": "ebde8b1d4da7bfea4f3ccaa2ff0c2d76b269c4ee98520b1846912e39100fd289"
 }
